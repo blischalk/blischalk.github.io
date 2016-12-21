@@ -71,19 +71,19 @@
       </item>
     
       <item>
+        <title>Environment Variables for Rails</title>
+        <description>For security purposes I like to keep confidential information out of my git repositories. While hosting a site with Heroku for a little while I learned that they advocate environment variables for storing sensitive information. I later switched over to my own server and wanted to replicate this setup. I threw my environment variables in the .bash_profile of the user associated with my application and found out that when ruby is started on the server a login doesn’t appear to occur for that user even though the process is owned by the user. The .bash_profile never appears to get loaded up. My environment variables weren’t being loaded up into my application as I had anticipated.</description>
+        <pubDate>Fri, 14 Sep 2012 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com//posts/environment-variables-for-rails</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/environment-variables-for-rails</guid>
+      </item>
+    
+      <item>
         <title>Data Munging in Ruby on Rails</title>
         <description>It has been awhile since my last blog post and quite a lot has happened. Since my last blog post I have completed a large Drupal 5 to Drupal 7 migration (The d5 to d7 migration has actually been an ongoing endeavor that was finally completed after a years worth of development), implemented authorization via cancan on this blog, and implemented nested comments via polymorphic associations and the ancestry gem on this blog. I should have quite a lot to talk about now!</description>
         <pubDate>Sat, 23 Jun 2012 00:00:00 -0500</pubDate>
         <link>http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</link>
         <guid isPermaLink="true">http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</guid>
-      </item>
-    
-      <item>
-        <title>Twitterfeed bit.ly URL Links Broken and Link to Tinyurl</title>
-        <description>After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken. Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links</description>
-        <pubDate>Fri, 23 Mar 2012 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl</guid>
       </item>
     
   </channel>
