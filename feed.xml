@@ -62,5 +62,21 @@
         <guid isPermaLink="true">http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</guid>
       </item>
     
+      <item>
+        <title>Data Munging in Ruby on Rails</title>
+        <description>It has been awhile since my last blog post and quite a lot has happened. Since my last blog post I have completed a large Drupal 5 to Drupal 7 migration (The d5 to d7 migration has actually been an ongoing endeavor that was finally completed after a years worth of development), implemented authorization via cancan on this blog, and implemented nested comments via polymorphic associations and the ancestry gem on this blog. I should have quite a lot to talk about now!</description>
+        <pubDate>Sat, 23 Jun 2012 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</guid>
+      </item>
+    
+      <item>
+        <title>Twitterfeed bit.ly URL Links Broken and Link to Tinyurl</title>
+        <description>After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken. Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links</description>
+        <pubDate>Fri, 23 Mar 2012 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com//posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl</guid>
+      </item>
+    
   </channel>
 </rss>
