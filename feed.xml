@@ -23,6 +23,14 @@
       </item>
     
       <item>
+        <title>Associations in ActiveRecord &quot;not&quot;</title>
+        <description>While working with Rails 4 today I was attempting to use the new .not method of ActiveRecord. This method is similar to the jQuery .not method as it allows you to filter your result set where a particular attribute of your result does NOT match what you pass in as .not’s argument. The syntax is:</description>
+        <pubDate>Fri, 01 May 2015 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com//posts/associations-in-activerecord-not</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/associations-in-activerecord-not</guid>
+      </item>
+    
+      <item>
         <title>Using Clj-http When A Web App Has CSRF Protection</title>
         <description>Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.</description>
         <pubDate>Wed, 15 Apr 2015 00:00:00 -0500</pubDate>

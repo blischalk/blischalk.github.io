@@ -9,6 +9,10 @@
 <lastmod>2016-12-18T00:00:00-06:00</lastmod>
 </url>
 <url>
+<loc>http://brettlischalk.com//posts/associations-in-activerecord-not</loc>
+<lastmod>2015-05-01T00:00:00-05:00</lastmod>
+</url>
+<url>
 <loc>http://brettlischalk.com//posts/using-clj-http-when-a-web-app-has-csrf-protection</loc>
 <lastmod>2015-04-15T00:00:00-05:00</lastmod>
 </url>
@@ -41,6 +45,9 @@
 </url>
 <url>
 <loc>http://brettlischalk.com//</loc>
+</url>
+<url>
+<loc>http://brettlischalk.com//tag/activerecord/</loc>
 </url>
 <url>
 <loc>http://brettlischalk.com//tag/asm/</loc>
@@ -92,6 +99,9 @@
 </url>
 <url>
 <loc>http://brettlischalk.com//tag/rails/</loc>
+</url>
+<url>
+<loc>http://brettlischalk.com//tag/rails4/</loc>
 </url>
 <url>
 <loc>http://brettlischalk.com//tag/rake/</loc>
