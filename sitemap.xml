@@ -9,10 +9,6 @@
 <lastmod>2016-12-18T00:00:00-06:00</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/posts/associations-in-activerecord-not</loc>
-<lastmod>2015-05-01T00:00:00-05:00</lastmod>
-</url>
-<url>
 <loc>http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</loc>
 <lastmod>2015-04-15T00:00:00-05:00</lastmod>
 </url>
@@ -27,6 +23,10 @@
 <url>
 <loc>http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</loc>
 <lastmod>2013-07-03T00:00:00-05:00</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/posts/associations-in-activerecord-not</loc>
+<lastmod>2013-05-01T00:00:00-05:00</lastmod>
 </url>
 <url>
 <loc>http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set</loc>
@@ -82,6 +82,9 @@
 <loc>http://localhost:4000/tag/drupal/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/egg/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/environment/</loc>
 </url>
 <url>
@@ -89,6 +92,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/tag/gem/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/hunter/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/tag/jenkins/</loc>
