@@ -7,27 +7,19 @@
     <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
-        <title>Introducing chalk</title>
-        <description>Chalk is a high quality, completely customizable, performant and 100% free blog template for Jekyll.</description>
-        <pubDate>Mon, 17 Oct 2016 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/introducing-chalk</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/introducing-chalk</guid>
+        <title>SLAE Problem 2 Reverse TCP Shellcode</title>
+        <description>A nice walkthrough of creating a reverse shellcode from scratch</description>
+        <pubDate>Tue, 20 Dec 2016 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</guid>
       </item>
     
       <item>
-        <title>How to configure Chalk</title>
-        <description>Learn more about the config file for Chalk and how to set it up properly.</description>
-        <pubDate>Sun, 16 Oct 2016 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/configuring-chalk</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/configuring-chalk</guid>
-      </item>
-    
-      <item>
-        <title>Chalk sample post with all elements</title>
-        <description>Have a look at all the predesigned elements you can use in Chalk.</description>
-        <pubDate>Sat, 15 Oct 2016 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/chalk-sample-post-with-all-elements</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/chalk-sample-post-with-all-elements</guid>
+        <title>SLAE Problem 1: TCP Bind Shell Shellcode</title>
+        <description>From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.</description>
+        <pubDate>Sun, 18 Dec 2016 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</guid>
       </item>
     
   </channel>
