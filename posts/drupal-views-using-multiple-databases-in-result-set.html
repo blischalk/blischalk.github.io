@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Drupal Views: Using Multiple Databases in Result Set</title>
+  <meta name="description" content="Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Drupal Views: Using Multiple Databases in Result Set">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set">
+  <meta property="og:description" content="Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set">
+  <meta name="twitter:title" content="Drupal Views: Using Multiple Databases in Result Set">
+  <meta name="twitter:description" content="Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Drupal Views: Using Multiple Databases in Result Set</h1>
+            <p>Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.</p>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                October 13, 2012
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  4 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/drupal">drupal</a>
+                
+                  <a href="/tag/multiple">multiple</a>
+                
+                  <a href="/tag/databases">databases</a>
+                
+                  <a href="/tag/views">views</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module.  Not only did we need to utilize multiple databases but the databases reside on two different servers.  I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.</p>
+
+<p>After some initial research I found the following posts on Drupal.org:</p>
+
+<ul>
+  <li><a href="http://drupal.org/node/576694">http://drupal.org/node/576694</a></li>
+  <li><a href="http://drupal.org/node/816456#comment-3042936">http://drupal.org/node/816456#comment-3042936</a></li>
+</ul>
+
+<p>Essentially what I gathered from my research was that Views simply can’t utilize two databases to generate it’s results.  This was not the answer I was hoping for. :(</p>
+
+<p>Before abandoning Views on this project in favor of a custom solution I decided to see if I could exploit custom Views Handler’s, Views hooks, and the fact that Drupal supports connecting to multiple databases.  My theory was this:</p>
+
+<ol>
+  <li>Within a custom module I could define some pseudo columns on the node table within hook_views_data().</li>
+  <li>I would then add these columns to the view’s fields within the Views module GUI.  Since there wouldn’t actually be any table column associated with these columns there just wouldn’t be any data in the result set for each row.</li>
+  <li>In hook_views_pre_render() I could exploit Drupal’s ability to connect to multiple databases.  Here I have access to the view with the results already queried so I can run an additional query on my second database.</li>
+  <li>After running my second query in hook_views_pre_render to get the additional data from the second database I will just slap it onto the views object in a custom property.  I make sure that the data set is keyed by nid so that I can match up the data from the view with the data from my secondary query.</li>
+  <li>I would then create a custom Views handler that would format the field columns I had added via the custom module and Views GUI.  I access the additional data I had attached to the views object in the custom property and merge it into the rows output.</li>
+</ol>
+
+<p>Here is some code to help illustrate the procedure.</p>
+
+<p><em>Note:** The following is just pseudo code to help illustrate the technique I used.  It is not cut and paste ready.  However if you are still confused on how the following code works, please feel free to ask questions in the comments.</em></p>
+
+<p>First, make sure you have your secondary database setup in settings.php</p>
+
+<figure class="highlight"><pre><code class="language-php" data-lang="php">$databases = array (
+  'default' =&gt;  
+  array (
+    'default' =&gt;  
+    array (
+      'driver' =&gt; 'mysql',
+      'database' =&gt; 'primary_db_name',
+      'username' =&gt; 'primary_db_uname',
+      'password' =&gt; 'primary_db_pass',
+      'host' =&gt; 'localhost',
+      'port' =&gt; '3306',
+      'prefix' =&gt; '', 
+    ),  
+  ),  
+  'name_to_refer_to_database' =&gt;  
+  array (
+    'default' =&gt;  
+    array (
+      'driver' =&gt; 'mysql',
+      'database' =&gt; 'secondary_db_name',
+      'username' =&gt; 'secondary_db_uname',
+      'password' =&gt; 'secondary_db_pass',
+      'host' =&gt; 'secondary_server_host',
+      'port' =&gt; '3306',
+      'prefix' =&gt; '', 
+    ),  
+  ),  
+);</code></pre></figure>
+
+<p>In a custom module, implement the required hooks:</p>
+
+<figure class="highlight"><pre><code class="language-php" data-lang="php"># Tell views about your module
+function your_module_views_api() {
+    return array(
+        'api' =&gt; 3,
+        'path' =&gt; drupal_get_path('module', 'your_module') . '/inc',
+    );
+}
+
+# Add your pseudo columns to the node table
+function your_module_views_data() {
+  $data['node']['column_name'] = array(
+    'title' =&gt; t('Custom Column'),
+    'help' =&gt; t('This is where your custom data will go.'),
+    'field' =&gt; array(
+      'handler' =&gt; 'custom_named_handler_field_custom_data',
+    ),
+  );
+
+  return $data;
+}
+
+# Tell views about your custom handler
+function your_module_views_handlers() {
+  return array(
+    'info' =&gt; array(
+      'path' =&gt; drupal_get_path('module', 'your_module') . '/inc',
+    ),
+    'handlers' =&gt; array(
+      'custom_named_handler_field_custom_data' =&gt; array(
+        'parent' =&gt; 'views_handler_field',
+      ),
+    ),
+  );
+}
+
+# Do your secondary query in hook_views_pre_render()
+function your_module_views_pre_render(<span class="err">&amp;</span>$view) {
+  if ($view-&gt;name == 'the_name_of_view_to_modify') {
+    # Create custom property on the views object to store our external data
+    $view-&gt;your_special_property = array();
+
+    # Get the node id's of the views result set
+    $nids = array();
+    foreach($view-&gt;result as $r) {
+      $nids[] = $r-&gt;nid;
+    }
+    
+    # Switch to secondary database
+    db_set_active('name_to_refer_to_database');
+
+    # Query for secondary database data utilizing the nids you gathered from the views result set
+    $query = db_select('table_name', 'tn');
+    # Add whatever query stuff you need here like the following:
+    $query-&gt;fields('tn', array('nid'));
+   
+    $results = $query-&gt;execute();
+    foreach($results as $result) {
+      $view-&gt;your_special_property[$result-&gt;nid]['custom_data'] = $result-&gt;custom_data;
+    }
+    # Switch back to the default database
+    db_set_active('default');
+  }
+}</code></pre></figure>
+
+<p>In your custom module’s .info file you will need to add the handler class file so that it gets required</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">name <span class="o">=</span> Your Custom Module
+description <span class="o">=</span> Module <span class="k">for </span>adding additional data from a secondary database to a view.
+core <span class="o">=</span> 7.x
+package <span class="o">=</span> Your package
+version <span class="o">=</span> 7.x-1.0
+files[] <span class="o">=</span> inc/your_module_handler_field_custom_data.inc </code></pre></figure>
+
+<p>Finally, create your views handler.  It should probably extend from views_handler_field_entity as that is the parent class that other more custom views field classes derive from.  You could also extend one of the more specific child classes if you wanted to utilize and inherit some of their functionality.</p>
+
+<figure class="highlight"><pre><code class="language-php" data-lang="php"><span class="cp">&lt;?php</span>
+<span class="k">class</span> <span class="nc">your_module_handler_field_custom_data</span> <span class="k">extends</span> <span class="nx">views_handler_field_entity</span> <span class="p">{</span>
+  <span class="sd">/** 
+   * Overridden from parent
+   */</span>
+  <span class="k">function</span> <span class="nf">render</span><span class="p">(</span><span class="nv">$values</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// make sure we have an array of the custom data we queried
+</span>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">empty</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">view</span><span class="o">-&gt;</span><span class="na">your_special_property</span><span class="p">[</span><span class="nv">$values</span><span class="o">-&gt;</span><span class="na">nid</span><span class="p">][</span><span class="s1">'custom_data'</span><span class="p">]))</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">view</span><span class="o">-&gt;</span><span class="na">your_special_property</span><span class="p">[</span><span class="nv">$values</span><span class="o">-&gt;</span><span class="na">nid</span><span class="p">][</span><span class="s1">'custom_data'</span><span class="p">]</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>   
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>I hope the general concept of this views hacking procedure isn’t too convoluted and that most people will find it understandable.  If anyone has any questions or knows of a cleaner more efficient way to accomplish what I did here please leave me a comment.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Drupal Views: Using Multiple Databases in Resul... - http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+
+</body>
+</html>

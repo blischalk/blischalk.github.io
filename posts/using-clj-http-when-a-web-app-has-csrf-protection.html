@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Using Clj-http When A Web App Has CSRF Protection</title>
+  <meta name="description" content="Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Using Clj-http When A Web App Has CSRF Protection">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection">
+  <meta property="og:description" content="Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection">
+  <meta name="twitter:title" content="Using Clj-http When A Web App Has CSRF Protection">
+  <meta name="twitter:description" content="Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Using Clj-http When A Web App Has CSRF Protection</h1>
+            <p>Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.</p>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                April 15, 2015
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  3 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/clj-http">clj-http</a>
+                
+                  <a href="/tag/clojure">clojure</a>
+                
+                  <a href="/tag/ring">ring</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used <a href="https://github.com/ring-clojure/ring-anti-forgery">ring-anti-forgery</a> for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using <a href="https://github.com/dakrone/clj-http">Clj-http</a>. The solution came out of a lot of trial and error.</p>
+
+<p>The first problem was that I needed to figure out a way to acquire the anti-forgery token. I did this by doing a GET request to the page that would contain the form that I wanted to spoof. I grabbed the body of the result of the GET request and used a regex to find and scrape the token out of the HTML.</p>
+
+<p>The second task was sending the CSRF token along with my posted data. This seemed problematic at first because of the next issue that I ran into but later realized that it isn’t that difficult. To send along the CSRF token, all that needs to be done is to either send it as a normal form param named “__anti-forgery-token” or it can also be passed in a header as either “X-CSRF-Token” or “X-XSRF-Token”.</p>
+
+<p>I thought this was all that would be needed to get my form spoofing working from clj-http but at this point things were not working. Ring kept complaining that the CSRF token was still invalid. It took me quite a bit to track down what I was missing but eventually I determined that ring-anti-forgery uses your ring session to match up the anti-forgery token that is being sent with the user who is making the request. So now the last task was to figure out how to send along the ring-session.</p>
+
+<p>The solution here turned out to be using a “cookie-store”. Before making the first request to acquire the CSRF token I had to initialize a cookie-store. I then would pass that along with all the future requests that I would make. By doing this the cookie store would get updated and read just as a users session would when interacting with the browser. On the first request for the token the cookie-store gets the ring-session stored in it. In the request to post the params ring is then able to compare the session with the CSRF token and verify that it is correct making the whole process complete.</p>
+
+<p>The whole process looked a little something like this:</p>
+
+<figure class="highlight"><pre><code class="language-clojure" data-lang="clojure"><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">cookie-store</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-http.cookies/cookie-store</span><span class="p">)</span><span class="w">
+      </span><span class="n">r1</span><span class="w"> </span><span class="p">(</span><span class="nf">http/get</span><span class="w"> </span><span class="s">"http://localhost/foo"</span><span class="w">
+           </span><span class="p">{</span><span class="no">:throw-exceptions</span><span class="w"> </span><span class="n">false</span><span class="w">
+            </span><span class="no">:cookie-store</span><span class="w"> </span><span class="n">cookie-store</span><span class="p">})</span><span class="w">
+      </span><span class="n">token-regex</span><span class="w"> </span><span class="p">(</span><span class="nb">str</span><span class="w"> </span><span class="s">"name=\"__anti-forgery-token\" "</span><span class="w">
+                       </span><span class="s">"type=\"hidden\" value=\"(.+?)\""</span><span class="p">)</span><span class="w">
+      </span><span class="n">token</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="n">token-regex</span><span class="w">
+                </span><span class="nb">re-pattern</span><span class="w">
+                </span><span class="p">(</span><span class="nb">re-find</span><span class="w"> </span><span class="p">(</span><span class="no">:body</span><span class="w"> </span><span class="n">r1</span><span class="p">))</span><span class="w">
+                         </span><span class="nb">second</span><span class="p">)</span><span class="w">
+      </span><span class="n">r2</span><span class="w"> </span><span class="p">(</span><span class="nf">http/post</span><span class="w"> </span><span class="s">"http://localhost/bar"</span><span class="w">
+                    </span><span class="p">{</span><span class="no">:headers</span><span class="w"> </span><span class="p">{</span><span class="s">"X-CSRF-Token"</span><span class="w"> </span><span class="n">token</span><span class="p">}</span><span class="w">
+                     </span><span class="no">:form-params</span><span class="w"> </span><span class="p">{</span><span class="no">:foo</span><span class="w"> </span><span class="s">"bar"</span><span class="p">}</span><span class="w">
+                     </span><span class="no">:throw-exceptions</span><span class="w"> </span><span class="n">false</span><span class="w">
+                     </span><span class="no">:cookie-store</span><span class="w"> </span><span class="n">cookie-store</span><span class="p">})])</span></code></pre></figure>
+
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Using Clj-http When A Web App Has CSRF Protection - http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+
+</body>
+</html>
