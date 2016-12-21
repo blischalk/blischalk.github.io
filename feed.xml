@@ -79,11 +79,11 @@
       </item>
     
       <item>
-        <title>Data Munging in Ruby on Rails</title>
-        <description>It has been awhile since my last blog post and quite a lot has happened. Since my last blog post I have completed a large Drupal 5 to Drupal 7 migration (The d5 to d7 migration has actually been an ongoing endeavor that was finally completed after a years worth of development), implemented authorization via cancan on this blog, and implemented nested comments via polymorphic associations and the ancestry gem on this blog. I should have quite a lot to talk about now!</description>
-        <pubDate>Sat, 23 Jun 2012 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/data-munging-in-ruby-on-rails</guid>
+        <title>Test::Unit or MiniTest must be loaded *before* Mocha</title>
+        <description>I recently ran bundle update on an older rails application that I had been developing. I added a few specs and when I went to run them I was greeted with the following error:</description>
+        <pubDate>Thu, 12 Jul 2012 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com//posts/test-unit-or-minitest-must-be-loaded-before-mocha</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/test-unit-or-minitest-must-be-loaded-before-mocha</guid>
       </item>
     
   </channel>
