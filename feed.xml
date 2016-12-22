@@ -3,87 +3,87 @@
   <channel>
     <title>Brett Lischalk</title>
     <description></description>
-    <link>http://localhost:4000</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
+    <link>http://brettlischalk.com/</link>
+    <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>SLAE Problem 3: Egg Hunter Demonstration</title>
+        <description>A demonstration of an egg hunter searching for shellcode</description>
+        <pubDate>Thu, 22 Dec 2016 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/slae-problem-3-egghunter-demo</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-3-egghunter-demo</guid>
+      </item>
     
       <item>
         <title>SLAE Problem 2: Reverse TCP Shellcode</title>
         <description>A nice walkthrough of creating a reverse shellcode from scratch</description>
         <pubDate>Tue, 20 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</guid>
+        <link>http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</guid>
       </item>
     
       <item>
         <title>SLAE Problem 1: TCP Bind Shell Shellcode</title>
         <description>From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.</description>
         <pubDate>Sun, 18 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</guid>
+        <link>http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</guid>
       </item>
     
       <item>
         <title>Using Clj-http When A Web App Has CSRF Protection</title>
         <description>Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.</description>
         <pubDate>Wed, 15 Apr 2015 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</guid>
+        <link>http://brettlischalk.com//posts/using-clj-http-when-a-web-app-has-csrf-protection</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/using-clj-http-when-a-web-app-has-csrf-protection</guid>
       </item>
     
       <item>
         <title>5 Great Experiences While Learning Clojure</title>
         <description>Lately I have been exploring functional programming and have been spending a lot of time working with Clojure.  As I spend more and more time with it I find that there are particular aspects of the language that I find beautiful and enjoyable.  Some of these aspects come from the fact that Clojure is a LISP dialect of programming language.  Other aspects come from the fact that Clojure is a functional language.  Here are 5 great experiences I have had while learning the language:</description>
         <pubDate>Sat, 26 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/5-great-experiences-while-learning-clojure</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/5-great-experiences-while-learning-clojure</guid>
+        <link>http://brettlischalk.com//posts/5-great-experiences-while-learning-clojure</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/5-great-experiences-while-learning-clojure</guid>
       </item>
     
       <item>
         <title>RailsConf 2014</title>
         <description>Today wrapped up RailsConf 2014 in Chicago, Illinois and I have to say that it was quite a good time.  This was my first RailsConf and it definitely lived up to its reputation.  From DHH trolling that TDD is nonsense in his Keynote speech to Tenderlove making a live merge of the &quot;AdequateRecord&quot; branch into Rails master it was never a dull moment.</description>
         <pubDate>Fri, 25 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/railsconf-2014</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/railsconf-2014</guid>
+        <link>http://brettlischalk.com//posts/railsconf-2014</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/railsconf-2014</guid>
       </item>
     
       <item>
         <title>Ruby Dir &quot;Random&quot; on Linux but Alphabetical on OSX</title>
         <description>Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized. What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops. This has to be some sort of weird Mac / Linux difference.</description>
         <pubDate>Wed, 03 Jul 2013 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</guid>
+        <link>http://brettlischalk.com//posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</guid>
       </item>
     
       <item>
         <title>Associations in ActiveRecord &quot;not&quot;</title>
         <description>While working with Rails 4 today I was attempting to use the new .not method of ActiveRecord. This method is similar to the jQuery .not method as it allows you to filter your result set where a particular attribute of your result does NOT match what you pass in as .not’s argument. The syntax is:</description>
         <pubDate>Wed, 01 May 2013 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/associations-in-activerecord-not</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/associations-in-activerecord-not</guid>
+        <link>http://brettlischalk.com//posts/associations-in-activerecord-not</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/associations-in-activerecord-not</guid>
       </item>
     
       <item>
         <title>Drupal Views: Using Multiple Databases in Result Set</title>
         <description>Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.</description>
         <pubDate>Sat, 13 Oct 2012 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/drupal-views-using-multiple-databases-in-result-set</guid>
+        <link>http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</guid>
       </item>
     
       <item>
         <title>Environment Variables for Rails</title>
         <description>For security purposes I like to keep confidential information out of my git repositories. While hosting a site with Heroku for a little while I learned that they advocate environment variables for storing sensitive information. I later switched over to my own server and wanted to replicate this setup. I threw my environment variables in the .bash_profile of the user associated with my application and found out that when ruby is started on the server a login doesn’t appear to occur for that user even though the process is owned by the user. The .bash_profile never appears to get loaded up. My environment variables weren’t being loaded up into my application as I had anticipated.</description>
         <pubDate>Fri, 14 Sep 2012 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/environment-variables-for-rails</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/environment-variables-for-rails</guid>
-      </item>
-    
-      <item>
-        <title>Test::Unit or MiniTest must be loaded *before* Mocha</title>
-        <description>I recently ran bundle update on an older rails application that I had been developing. I added a few specs and when I went to run them I was greeted with the following error:</description>
-        <pubDate>Thu, 12 Jul 2012 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/test-unit-or-minitest-must-be-loaded-before-mocha</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/test-unit-or-minitest-must-be-loaded-before-mocha</guid>
+        <link>http://brettlischalk.com//posts/environment-variables-for-rails</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/environment-variables-for-rails</guid>
       </item>
     
   </channel>
