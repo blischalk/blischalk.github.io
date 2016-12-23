@@ -7,6 +7,14 @@
     <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>SLAE Problem 4: Custom Encoding Scheme</title>
+        <description>A demonstration of a custom encoding scheme</description>
+        <pubDate>Fri, 23 Dec 2016 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/slae-problem-4-custom-encoder</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-4-custom-encoder</guid>
+      </item>
+    
+      <item>
         <title>SLAE Problem 3: Egg Hunter Demonstration</title>
         <description>A demonstration of an egg hunter searching for shellcode</description>
         <pubDate>Thu, 22 Dec 2016 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Sat, 13 Oct 2012 00:00:00 -0500</pubDate>
         <link>http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</link>
         <guid isPermaLink="true">http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</guid>
-      </item>
-    
-      <item>
-        <title>Environment Variables for Rails</title>
-        <description>For security purposes I like to keep confidential information out of my git repositories. While hosting a site with Heroku for a little while I learned that they advocate environment variables for storing sensitive information. I later switched over to my own server and wanted to replicate this setup. I threw my environment variables in the .bash_profile of the user associated with my application and found out that when ruby is started on the server a login doesn’t appear to occur for that user even though the process is owned by the user. The .bash_profile never appears to get loaded up. My environment variables weren’t being loaded up into my application as I had anticipated.</description>
-        <pubDate>Fri, 14 Sep 2012 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/environment-variables-for-rails</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/environment-variables-for-rails</guid>
       </item>
     
   </channel>
