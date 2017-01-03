@@ -7,6 +7,14 @@
     <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>SLAE Problem 5.1: Msfvenom Analysis</title>
+        <description>Analysis of Msfvenom shellcode samples</description>
+        <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/slae-problem-5-1-msfvenom-analysis</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-5-1-msfvenom-analysis</guid>
+      </item>
+    
+      <item>
         <title>SLAE Problem 4: Custom Encoding Scheme</title>
         <description>A demonstration of a custom encoding scheme</description>
         <pubDate>Fri, 23 Dec 2016 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Wed, 01 May 2013 00:00:00 -0500</pubDate>
         <link>http://brettlischalk.com//posts/associations-in-activerecord-not</link>
         <guid isPermaLink="true">http://brettlischalk.com//posts/associations-in-activerecord-not</guid>
-      </item>
-    
-      <item>
-        <title>Drupal Views: Using Multiple Databases in Result Set</title>
-        <description>Recently while working at my day job the need arose to utilize multiple databases to deliver a result in Drupal’s Views module. Not only did we need to utilize multiple databases but the databases reside on two different servers. I know that Drupal has the ability to connect to multiple databases but I had never considered how Views would utilize both databases or if it was even possible.</description>
-        <pubDate>Sat, 13 Oct 2012 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/drupal-views-using-multiple-databases-in-result-set</guid>
       </item>
     
   </channel>
