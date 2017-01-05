@@ -3,87 +3,87 @@
   <channel>
     <title>Brett Lischalk</title>
     <description></description>
-    <link>http://brettlischalk.com/</link>
-    <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
+    <link>http://localhost:4000</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>SLAE Problem 5.3: Msfvenom Analysis of linux/x86/exec</title>
+        <description>Analysis of Msfvenom shellcode: linux/x86/exec</description>
+        <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/slae-problem-5-3-msfvenom-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-3-msfvenom-analysis</guid>
+      </item>
     
       <item>
         <title>SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser</title>
-        <description>Analysis of Msfvenom shellcode samples</description>
+        <description>Analysis of Msfvenom shellcode: linux/x86/adduser</description>
         <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-5-2-msfvenom-analysis</guid>
+        <link>http://localhost:4000/posts/slae-problem-5-2-msfvenom-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-2-msfvenom-analysis</guid>
       </item>
     
       <item>
         <title>SLAE Problem 5.1: Msfvenom Analysis of linux/x86/shell_reverse_tcp</title>
-        <description>Analysis of Msfvenom shellcode samples</description>
+        <description>Analysis of Msfvenom shellcode: linux/x86/shell_reverse_tcp</description>
         <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-5-1-msfvenom-analysis</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-5-1-msfvenom-analysis</guid>
+        <link>http://localhost:4000/posts/slae-problem-5-1-msfvenom-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-1-msfvenom-analysis</guid>
       </item>
     
       <item>
         <title>SLAE Problem 4: Custom Encoding Scheme</title>
         <description>A demonstration of a custom encoding scheme</description>
         <pubDate>Fri, 23 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-4-custom-encoder</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-4-custom-encoder</guid>
+        <link>http://localhost:4000/posts/slae-problem-4-custom-encoder</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-4-custom-encoder</guid>
       </item>
     
       <item>
         <title>SLAE Problem 3: Egg Hunter Demonstration</title>
         <description>A demonstration of an egg hunter searching for shellcode</description>
         <pubDate>Thu, 22 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-3-egghunter-demo</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-3-egghunter-demo</guid>
+        <link>http://localhost:4000/posts/slae-problem-3-egghunter-demo</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-3-egghunter-demo</guid>
       </item>
     
       <item>
         <title>SLAE Problem 2: Reverse TCP Shellcode</title>
         <description>A nice walkthrough of creating a reverse shellcode from scratch</description>
         <pubDate>Tue, 20 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-2-reverse-tcp-shellcode</guid>
+        <link>http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</guid>
       </item>
     
       <item>
         <title>SLAE Problem 1: TCP Bind Shell Shellcode</title>
         <description>From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.</description>
         <pubDate>Sun, 18 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-1-tcp-bind-shellcode</guid>
+        <link>http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</guid>
       </item>
     
       <item>
         <title>Using Clj-http When A Web App Has CSRF Protection</title>
         <description>Recently when working on a Clojure web app I ran into a scenario where I wanted to do a little bit of integration testing. What I wanted to do was post some data to the same endpoint that my webform would post to. The problem was that the app used ring-anti-forgery for CSRF protection. Because of this, I needed to figure out a way to spoof this anti-forgery token when making POST requests using Clj-http. The solution came out of a lot of trial and error.</description>
         <pubDate>Wed, 15 Apr 2015 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/using-clj-http-when-a-web-app-has-csrf-protection</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/using-clj-http-when-a-web-app-has-csrf-protection</guid>
+        <link>http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</guid>
       </item>
     
       <item>
         <title>5 Great Experiences While Learning Clojure</title>
         <description>Lately I have been exploring functional programming and have been spending a lot of time working with Clojure.  As I spend more and more time with it I find that there are particular aspects of the language that I find beautiful and enjoyable.  Some of these aspects come from the fact that Clojure is a LISP dialect of programming language.  Other aspects come from the fact that Clojure is a functional language.  Here are 5 great experiences I have had while learning the language:</description>
         <pubDate>Sat, 26 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/5-great-experiences-while-learning-clojure</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/5-great-experiences-while-learning-clojure</guid>
+        <link>http://localhost:4000/posts/5-great-experiences-while-learning-clojure</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/5-great-experiences-while-learning-clojure</guid>
       </item>
     
       <item>
         <title>RailsConf 2014</title>
         <description>Today wrapped up RailsConf 2014 in Chicago, Illinois and I have to say that it was quite a good time.  This was my first RailsConf and it definitely lived up to its reputation.  From DHH trolling that TDD is nonsense in his Keynote speech to Tenderlove making a live merge of the &quot;AdequateRecord&quot; branch into Rails master it was never a dull moment.</description>
         <pubDate>Fri, 25 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/railsconf-2014</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/railsconf-2014</guid>
-      </item>
-    
-      <item>
-        <title>Ruby Dir &quot;Random&quot; on Linux but Alphabetical on OSX</title>
-        <description>Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized. What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops. This has to be some sort of weird Mac / Linux difference.</description>
-        <pubDate>Wed, 03 Jul 2013 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/ruby-dir-random-on-linux-but-alphabetical-on-osx</guid>
+        <link>http://localhost:4000/posts/railsconf-2014</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/railsconf-2014</guid>
       </item>
     
   </channel>
