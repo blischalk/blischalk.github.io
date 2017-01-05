@@ -218,7 +218,12 @@ keep going:</p>
 shellcode our disassembler has failed us making the instructions
 after the call seem random and non-sensical. libemu seems to
 have gotten them right but we can also drop the bytes
-<code class="highlighter-rouge">57 53 89 e1 cd 80</code> into our online disassembler <a href="https://defuse.ca/online-x86-assembler.htm#disassembly2">here</a>.</p>
+<code class="highlighter-rouge">57 53 89 e1 cd 80</code> into our online disassembler <a href="https://defuse.ca/online-x86-assembler.htm#disassembly2">here</a>.
+Another trick is to use a bit of perl like so:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">perl -e <span class="s1">'print "\x57\x53\x89\xe1\xcd\x80"'</span> &gt; shellcode
+
+ndisasm -b 32 shellcode</code></pre></figure>
 
 <p>Looking at the results we get:</p>
 
