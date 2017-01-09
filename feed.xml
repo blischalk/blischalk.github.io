@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</title>
+        <description>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</description>
+        <pubDate>Mon, 09 Jan 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism</guid>
+      </item>
+    
+      <item>
         <title>SLAE Problem 5.3: Msfvenom Analysis of linux/x86/exec</title>
         <description>Analysis of Msfvenom shellcode: linux/x86/exec</description>
         <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Sat, 26 Apr 2014 00:00:00 -0500</pubDate>
         <link>http://localhost:4000/posts/5-great-experiences-while-learning-clojure</link>
         <guid isPermaLink="true">http://localhost:4000/posts/5-great-experiences-while-learning-clojure</guid>
-      </item>
-    
-      <item>
-        <title>RailsConf 2014</title>
-        <description>Today wrapped up RailsConf 2014 in Chicago, Illinois and I have to say that it was quite a good time.  This was my first RailsConf and it definitely lived up to its reputation.  From DHH trolling that TDD is nonsense in his Keynote speech to Tenderlove making a live merge of the &quot;AdequateRecord&quot; branch into Rails master it was never a dull moment.</description>
-        <pubDate>Fri, 25 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/railsconf-2014</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/railsconf-2014</guid>
       </item>
     
   </channel>

