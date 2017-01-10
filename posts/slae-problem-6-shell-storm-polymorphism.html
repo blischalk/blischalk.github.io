@@ -540,7 +540,7 @@ throw it in gdb and extract the assembly code:</p>
    0x0804a063 &lt;+35&gt;:	add    BYTE PTR <span class="o">[</span>eax],al</code></pre></figure>
 
 <p>So the first thing that jumps out about this shellcode is that it
-appears to be utilizing the <code class="highlighter-rouge">jmp call</code> pop technique.</p>
+appears to be utilizing the <code class="highlighter-rouge">jmp call pop</code> technique.</p>
 
 <figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">=&gt; </span>0x0804a040 &lt;+0&gt;:	    jmp    0x804a053 &lt;shell+19&gt;
    0x0804a042 &lt;+2&gt;:	    pop    esi &lt;-- Address after call goes here
