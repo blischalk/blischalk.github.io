@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>SLAE Problem 7: Create a Custom Crypter</title>
+        <description>SLAE Problem 7: Create a Custom Crypter</description>
+        <pubDate>Tue, 10 Jan 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/slae-problem-7-custom-crypter</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-7-custom-crypter</guid>
+      </item>
+    
+      <item>
         <title>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</title>
         <description>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</description>
         <pubDate>Mon, 09 Jan 2017 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Wed, 15 Apr 2015 00:00:00 -0500</pubDate>
         <link>http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</link>
         <guid isPermaLink="true">http://localhost:4000/posts/using-clj-http-when-a-web-app-has-csrf-protection</guid>
-      </item>
-    
-      <item>
-        <title>5 Great Experiences While Learning Clojure</title>
-        <description>Lately I have been exploring functional programming and have been spending a lot of time working with Clojure.  As I spend more and more time with it I find that there are particular aspects of the language that I find beautiful and enjoyable.  Some of these aspects come from the fact that Clojure is a LISP dialect of programming language.  Other aspects come from the fact that Clojure is a functional language.  Here are 5 great experiences I have had while learning the language:</description>
-        <pubDate>Sat, 26 Apr 2014 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/5-great-experiences-while-learning-clojure</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/5-great-experiences-while-learning-clojure</guid>
       </item>
     
   </channel>

