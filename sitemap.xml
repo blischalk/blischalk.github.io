@@ -109,6 +109,9 @@
 <loc>http://localhost:4000/tag/clojure/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/daemon/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/data/</loc>
 </url>
 <url>
