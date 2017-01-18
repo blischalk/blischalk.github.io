@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Linux Daemon</title>
+        <description>How to write a Linux daemon.</description>
+        <pubDate>Tue, 17 Jan 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/linux-daemon</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/linux-daemon</guid>
+      </item>
+    
+      <item>
         <title>Opcode Script</title>
         <description>Opcodes from Assembly Instructions</description>
         <pubDate>Sun, 15 Jan 2017 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Tue, 20 Dec 2016 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</link>
         <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-2-reverse-tcp-shellcode</guid>
-      </item>
-    
-      <item>
-        <title>SLAE Problem 1: TCP Bind Shell Shellcode</title>
-        <description>From my experience playing around with socket programming in C and Python, there is a basic formula and group of function calls for creating clients and servers. Most of them will be useful to us. A couple won't be applicable to our situation.</description>
-        <pubDate>Sun, 18 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-1-tcp-bind-shellcode</guid>
       </item>
     
   </channel>

@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Linux Daemon</title>
+  <meta name="description" content="How to write a Linux daemon.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Linux Daemon">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/linux-daemon">
+  <meta property="og:description" content="How to write a Linux daemon.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/linux-daemon">
+  <meta name="twitter:title" content="Linux Daemon">
+  <meta name="twitter:description" content="How to write a Linux daemon.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Linux Daemon</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                January 17, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  6 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/c">c</a>
+                
+                  <a href="/tag/daemon">daemon</a>
+                
+                  <a href="/tag/linux">linux</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>I have always wanted to know what goes into writing a daemon for Linux
+so I decided it was about time to figure it out. I attribute most of
+what I have learned to Devin Watson’s article
+<a href="http://www.netzmafia.de/skripten/unix/linux-daemon-howto.html">here</a>.</p>
+
+<h2 id="what-is-a-daemon">What is a Daemon?</h2>
+
+<p>A daemon is essentially a program that runs in the background instead
+of the foreground and isn’t associated with any tty. It often runs
+continuously and starts when the OS boots up but doesn’t have to. What
+do I mean by background vs. foreground?  Well, if you start a script
+or program at the command line you will see the output in the console
+until the program finishes or you terminate the process. This is
+running in the “foreground”. You can also run a program in the
+background from the command line by appending an <code class="highlighter-rouge">&amp;</code> to the end of the
+script or program.</p>
+
+<p>So I just have to append an ampersand to a command to make a service?
+No. That just runs a program in the background. See the discussion
+about a
+<a href="http://stackoverflow.com/questions/958249/whats-the-difference-between-nohup-and-a-daemon">poor man’s daemon</a>
+using nohup. Ok. Now that we established what a Daemon is… How do we
+write one?</p>
+
+<h2 id="writing-a-daemon">Writing a Daemon</h2>
+
+<p>According to <a href="Wikipedia Daemon">https://en.wikipedia.org/wiki/Daemon</a> the
+creation of a Daemon involves:</p>
+
+<ul>
+  <li>Dissociating from the controlling tty</li>
+  <li>Becoming a session leader.</li>
+  <li>Becoming a process group leader.</li>
+  <li>Executing as a background task by forking and exiting (once or
+twice). This is required sometimes for the process to become a
+session leader. It also allows the parent process to continue its
+normal execution.</li>
+  <li>Setting the root directory (/) as the current working directory so
+that the process does not keep any directory in use that may be on a
+mounted file system (allowing it to be unmounted).</li>
+  <li>Changing the umask to 0 to allow open(), creat(), and other
+operating system calls to provide their own permission masks and not
+to depend on the umask of the caller</li>
+  <li>Closing all inherited files at the time of execution that are left
+open by the parent process, including file descriptors 0, 1 and 2
+for the standard streams (stdin, stdout and stderr). Required files
+will be opened later.</li>
+  <li>Using a logfile, the console, or /dev/null as stdin, stdout, and stderr</li>
+</ul>
+
+<p>Lets take a look at some basic C daemon code and see how it aligns
+with the Wikipedia formula. The first thing we do is create a child
+process by calling <code class="highlighter-rouge">fork()</code> and exit the parent process by calling
+<code class="highlighter-rouge">exit()</code>. This:</p>
+
+<ul>
+  <li>disassociates from the controlling tty</li>
+  <li>executes as a background task by forking and exiting</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;string.h&gt;
+#include &lt;syslog.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">*</span> <span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+  <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">pid_t</span> <span class="n">process_id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">pid_t</span> <span class="n">sid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="c1">// Create child process
+</span>  <span class="n">process_id</span> <span class="o">=</span> <span class="n">fork</span><span class="p">();</span>
+
+  <span class="c1">// Indication of fork() failure
+</span>  <span class="k">if</span> <span class="p">(</span><span class="n">process_id</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"fork failed!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="c1">// Return failure in exit status
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// PARENT PROCESS. Need to kill it.
+</span>  <span class="k">if</span> <span class="p">(</span><span class="n">process_id</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"process_id of child process %d </span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">process_id</span><span class="p">);</span>
+    <span class="c1">// return success in exit status
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>Change the current directory so we don’t hold references to any
+mounted directories allowing them to be unmounted.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="c1">// Change the current working directory to root.
+</span>  <span class="n">chdir</span><span class="p">(</span><span class="s">"/"</span><span class="p">);</span></code></pre></figure>
+
+<p>Next we change the umask to 0. As mentioned previously, this will
+allow open(), creat(), and other operating system calls to provide
+their own permission masks and not to depend on the umask of the
+caller.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="c1">//unmask the file mode
+</span>  <span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span></code></pre></figure>
+
+<p>Become the session leader and process group leader:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="c1">//set new session
+</span>  <span class="n">sid</span> <span class="o">=</span> <span class="n">setsid</span><span class="p">();</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">sid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="c1">// Return failure
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>Closing all inherited files at the time of execution:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="c1">// Close stdin. stdout and stderr
+</span>  <span class="n">close</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">STDOUT_FILENO</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">STDERR_FILENO</span><span class="p">);</span></code></pre></figure>
+
+<p>Use a log file:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="c1">// Open a log file in write mode.
+</span>  <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span> <span class="p">(</span><span class="s">"Log.txt"</span><span class="p">,</span> <span class="s">"w+"</span><span class="p">);</span>
+  <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"Logging info...</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="n">fflush</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+    <span class="n">openlog</span><span class="p">(</span><span class="s">"mydaemon"</span><span class="p">,</span> <span class="n">LOG_PID</span><span class="o">|</span><span class="n">LOG_CONS</span><span class="p">,</span> <span class="n">LOG_USER</span><span class="p">);</span>
+    <span class="n">syslog</span><span class="p">(</span><span class="n">LOG_INFO</span><span class="p">,</span> <span class="s">"A different kind of Hello world ... "</span><span class="p">);</span>
+    <span class="n">closelog</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Altogether we get:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;string.h&gt;
+#include &lt;syslog.h&gt;
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">*</span> <span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+  <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="n">pid_t</span> <span class="n">process_id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">pid_t</span> <span class="n">sid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="c1">// Create child process
+</span>  <span class="n">process_id</span> <span class="o">=</span> <span class="n">fork</span><span class="p">();</span>
+
+  <span class="c1">// Indication of fork() failure
+</span>  <span class="k">if</span> <span class="p">(</span><span class="n">process_id</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"fork failed!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="c1">// Return failure in exit status
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// PARENT PROCESS. Need to kill it.
+</span>  <span class="k">if</span> <span class="p">(</span><span class="n">process_id</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"process_id of child process %d </span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">process_id</span><span class="p">);</span>
+    <span class="c1">// return success in exit status
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">//unmask the file mode
+</span>  <span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+  <span class="c1">//set new session
+</span>  <span class="n">sid</span> <span class="o">=</span> <span class="n">setsid</span><span class="p">();</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">sid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="c1">// Return failure
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Change the current working directory to root.
+</span>  <span class="n">chdir</span><span class="p">(</span><span class="s">"/"</span><span class="p">);</span>
+
+  <span class="c1">// Close stdin. stdout and stderr
+</span>  <span class="n">close</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">STDOUT_FILENO</span><span class="p">);</span>
+  <span class="n">close</span><span class="p">(</span><span class="n">STDERR_FILENO</span><span class="p">);</span>
+
+  <span class="c1">// Open a log file in write mode.
+</span>  <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span> <span class="p">(</span><span class="s">"Log.txt"</span><span class="p">,</span> <span class="s">"w+"</span><span class="p">);</span>
+  <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"Logging info...</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="n">fflush</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+    <span class="n">openlog</span><span class="p">(</span><span class="s">"mydaemon"</span><span class="p">,</span> <span class="n">LOG_PID</span><span class="o">|</span><span class="n">LOG_CONS</span><span class="p">,</span> <span class="n">LOG_USER</span><span class="p">);</span>
+    <span class="n">syslog</span><span class="p">(</span><span class="n">LOG_INFO</span><span class="p">,</span> <span class="s">"A different kind of Hello world ... "</span><span class="p">);</span>
+    <span class="n">closelog</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="trial-run">Trial Run</h2>
+
+<p>So what happens if we compile and run it?</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc -o mydaemon mydaemon.c
+
+<span class="gp">$ </span>mv daemon.c mydaemon.c
+
+<span class="gp">$ </span>ps aux | grep mydaemon
+2942  0.0  0.1   4696  2052 pts/2    S+   22:19   0:00 grep --color<span class="o">=</span>auto mydaemon
+
+<span class="gp">$ </span>./mydaemon
+process_id of child process 2944
+
+<span class="gp">$ </span>ps aux | grep mydaemon
+2944  0.0  0.0   2176  1212 ?        Ss   22:19   0:00 ./mydaemon
+2978  0.0  0.1   4696  2104 pts/2    S+   22:21   0:00 grep --color<span class="o">=</span>auto mydaemon
+
+<span class="gp">$ </span>tail -f /var/log/syslog
+.. snip ..
+Jan 17 22:19:23 frankgrimes-VirtualBox mydaemon[2944]: A different kind of Hello world</code></pre></figure>
+
+<p>We can see that our program is not holding on to the terminal window
+but is indeed running in the background based upon looking at the
+process list and the log entry that has been written.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Linux Daemon - http://localhost:4000/posts/linux-daemon by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/linux-daemon', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/linux-daemon', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
