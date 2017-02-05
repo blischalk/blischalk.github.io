@@ -95,7 +95,7 @@
               <span class="article-list-minutes">
                 
                 
-                  4 minute read
+                  5 minute read
                 
               </span>
               <span class="article-list-divider">-</span>
@@ -197,7 +197,12 @@ ourselves up with a skeleton project following the quickstart:</p>
 
 <p>The two dependencies we have added are <code class="highlighter-rouge">network-simple</code> which is the
 TCP library we found earlier and <code class="highlighter-rouge">bytestring</code> which is a library
-included with Haskell we need to require into our project.</p>
+included with Haskell we need to require into our project. You’ll
+notice that in the stack.yaml file a version is appended after the
+name of the library. This version number can be derived from a Haskell
+libraries info page
+<a href="https://hackage.haskell.org/package/network-simple">like this one</a>. You’ll
+see that at the time of this writing <code class="highlighter-rouge">0.4.0.5</code> is the latest version.</p>
 
 <p>Next we write our code:</p>
 
@@ -223,6 +228,17 @@ included with Haskell we need to require into our project.</p>
   <span class="n">connect</span> <span class="n">host</span> <span class="n">port</span> <span class="o">$</span> <span class="nf">\</span><span class="p">(</span><span class="n">connectionSocket</span><span class="p">,</span> <span class="n">remoteAddr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kr">do</span>
     <span class="n">putStrLn</span> <span class="o">$</span> <span class="s">"Connection established to "</span> <span class="o">++</span> <span class="n">show</span> <span class="n">remoteAddr</span>
     <span class="n">send</span> <span class="n">connectionSocket</span> <span class="n">payload</span></code></pre></figure>
+
+<p>The code is pretty self explanatory. We:</p>
+
+<ol>
+  <li>import the libraries we need for dealing with TCP</li>
+  <li>define some constants</li>
+  <li>define the payload that we want to send across the wire, in this
+case, a series of 500 A’s.</li>
+  <li>setup our IO Monad which prints some helpful messaging, makes our
+connection, and sends the payload over the socket.</li>
+</ol>
 
 <p>If we startup a netcat listener using <code class="highlighter-rouge">nc -nlvp 4444</code> in one terminal:</p>
 
