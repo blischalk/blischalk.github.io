@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Haskell YAML Config</title>
+        <description>A quick example of reading a yaml config file in Haskell.</description>
+        <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/haskell-yaml-config</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/haskell-yaml-config</guid>
+      </item>
+    
+      <item>
         <title>Haskell TCP Fuzzer</title>
         <description>An example TCP fuzzer written in Haskell</description>
         <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Fri, 23 Dec 2016 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/slae-problem-4-custom-encoder</link>
         <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-4-custom-encoder</guid>
-      </item>
-    
-      <item>
-        <title>SLAE Problem 3: Egg Hunter Demonstration</title>
-        <description>A demonstration of an egg hunter searching for shellcode</description>
-        <pubDate>Thu, 22 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-3-egghunter-demo</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-3-egghunter-demo</guid>
       </item>
     
   </channel>

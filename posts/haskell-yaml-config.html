@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Haskell YAML Config</title>
+  <meta name="description" content="A quick example of reading a yaml config file in Haskell.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Haskell YAML Config">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/haskell-yaml-config">
+  <meta property="og:description" content="A quick example of reading a yaml config file in Haskell.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/haskell-yaml-config">
+  <meta name="twitter:title" content="Haskell YAML Config">
+  <meta name="twitter:description" content="A quick example of reading a yaml config file in Haskell.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Haskell YAML Config</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                February 5, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  3 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/haskell">haskell</a>
+                
+                  <a href="/tag/yaml">yaml</a>
+                
+                  <a href="/tag/config">config</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>Source code for this blog post can be found
+<a href="https://github.com/blischalk/haskell-yaml-config">here</a>.</p>
+
+<p>One of my favorite ways of learning a programming language is to just
+create little projects for myself that I want to learn. The process of
+doing the research to learn how to achieve a particular programming
+task I often find more enjoyable than trying to understand all of the
+in’s and out’s of a language. That said, one project I embarked on to
+get better at Haskell was reading a yaml config file. Pretty much all
+programming projects I have worked on have had some sort of
+configuration so I felt that this little project would be well worth
+the effort.</p>
+
+<h2 id="libraries">Libraries</h2>
+
+<p>As always, the first place we start looking is for libraries. Out of
+the gate we find the <a href="https://hackage.haskell.org/package/yaml">yaml</a>
+and <a href="https://hackage.haskell.org/package/yaml-config">yaml-config</a>
+libraries. The more general <code class="highlighter-rouge">yaml</code> library seems to specifically deal
+with yaml data. On the otherhand, the <code class="highlighter-rouge">yaml-config</code> library seems to
+go a step further and deals with loading a config file from
+disk. Looking at it’s <code class="highlighter-rouge">.cabal</code> file it seems that unsurprisingly
+<code class="highlighter-rouge">yaml-config</code> uses the <code class="highlighter-rouge">yaml</code> library behind the scenes. I always like
+to work at the highest level of abstraction if possible and it seems
+that <code class="highlighter-rouge">yaml-config</code> may do exactly what we are looking for so lets
+start there.</p>
+
+<h2 id="yaml-config">yaml-config</h2>
+
+<p>We’ll start off by creating a basic project with stack:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">stack new readyamlconfig
+stack setup
+<span class="nb">cd </span>readyamlconfig
+stack build
+<span class="gp">:~/shared/haskell/readyamlconfig$ </span>stack <span class="nb">exec </span>readyamlconfig-exe
+someFunc</code></pre></figure>
+
+<p>We can see that executing the basic stub program with <code class="highlighter-rouge">stack exec
+readyamlconfig-exe</code> outputs <code class="highlighter-rouge">someFunc</code>. This means our scaffolded
+program is ready for us to write some code.</p>
+
+<p>The next thing we’ll want to do is go ahead and add the <code class="highlighter-rouge">yaml-config</code>
+library dependency to our <code class="highlighter-rouge">readyamlconfig.cabal</code> and <code class="highlighter-rouge">stack.yaml</code>
+files.</p>
+
+<h3 id="readyamlconfigcabal">readyamlconfig.cabal</h3>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">library</span>
+  <span class="n">hs</span><span class="o">-</span><span class="n">source</span><span class="o">-</span><span class="n">dirs</span><span class="o">:</span>      <span class="n">src</span>
+  <span class="n">exposed</span><span class="o">-</span><span class="n">modules</span><span class="o">:</span>     <span class="kt">Lib</span>
+  <span class="n">build</span><span class="o">-</span><span class="n">depends</span><span class="o">:</span>       <span class="n">base</span> <span class="o">&gt;=</span> <span class="mf">4.7</span> <span class="o">&amp;&amp;</span> <span class="o">&lt;</span> <span class="mi">5</span>
+                     <span class="p">,</span> <span class="n">yaml</span><span class="o">-</span><span class="n">config</span>
+  <span class="kr">default</span><span class="o">-</span><span class="n">language</span><span class="o">:</span>    <span class="kt">Haskell2010</span>
+
+<span class="n">executable</span> <span class="n">readyamlconfig</span><span class="o">-</span><span class="n">exe</span>
+  <span class="n">hs</span><span class="o">-</span><span class="n">source</span><span class="o">-</span><span class="n">dirs</span><span class="o">:</span>      <span class="n">app</span>
+  <span class="n">main</span><span class="o">-</span><span class="n">is</span><span class="o">:</span>             <span class="kt">Main</span><span class="o">.</span><span class="n">hs</span>
+  <span class="n">ghc</span><span class="o">-</span><span class="n">options</span><span class="o">:</span>         <span class="o">-</span><span class="n">threaded</span> <span class="o">-</span><span class="n">rtsopts</span> <span class="o">-</span><span class="n">with</span><span class="o">-</span><span class="n">rtsopts</span><span class="o">=-</span><span class="kt">N</span>
+  <span class="n">build</span><span class="o">-</span><span class="n">depends</span><span class="o">:</span>       <span class="n">base</span>
+                     <span class="p">,</span> <span class="n">readyamlconfig</span>
+                     <span class="p">,</span> <span class="n">yaml</span><span class="o">-</span><span class="n">config</span>
+  <span class="kr">default</span><span class="o">-</span><span class="n">language</span><span class="o">:</span>    <span class="kt">Haskell2010</span></code></pre></figure>
+
+<h3 id="stackyaml">stack.yaml</h3>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">extra-deps</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">yaml-config-0.4.0</span><span class="pi">]</span></code></pre></figure>
+
+<p>Then we rebuild the project with <code class="highlighter-rouge">stack build</code> to acquire the dependencies.</p>
+
+<p>Next we create a basic <code class="highlighter-rouge">yaml</code> config file:</p>
+
+<h3 id="configyaml">config.yaml</h3>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">config</span><span class="pi">:</span>
+  <span class="s">items</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">thing one</span>
+    <span class="pi">-</span> <span class="s">thing two</span></code></pre></figure>
+
+<p>Now lets write some code:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="cp">{-# LANGUAGE OverloadedStrings #-}</span>
+<span class="kr">module</span> <span class="nn">Lib</span>
+    <span class="p">(</span> <span class="nf">someFunc</span>
+    <span class="p">)</span> <span class="kr">where</span>
+
+<span class="kr">import</span> <span class="nn">Data.Yaml.Config</span> <span class="p">(</span><span class="nf">load</span><span class="p">,</span> <span class="nf">subconfig</span><span class="p">,</span> <span class="nf">lookupDefault</span><span class="p">)</span>
+
+<span class="n">someFunc</span> <span class="o">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="n">someFunc</span> <span class="o">=</span> <span class="kr">do</span>
+  <span class="n">configFile</span> <span class="o">&lt;-</span> <span class="n">load</span> <span class="s">"./config.yaml"</span>
+  <span class="n">cfg</span> <span class="o">&lt;-</span> <span class="n">subconfig</span> <span class="s">"config"</span> <span class="n">configFile</span>
+  <span class="kr">let</span> <span class="n">items</span> <span class="o">=</span> <span class="n">lookupDefault</span> <span class="s">"items"</span> <span class="kt">[]</span> <span class="n">cfg</span>
+
+  <span class="n">mapM_</span> <span class="n">putStrLn</span> <span class="n">items</span></code></pre></figure>
+
+<p>This library seems to have a dependency on OverloadedStrings so I have
+added that from the example on the github page. The code is all pretty
+straight forward. We load up the file, grab the “config” key and get
+the collection of “items”. <code class="highlighter-rouge">lookupDefault</code> is used here as an example
+of how a default can be specified if a key is not found in a config
+file.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Haskell YAML Config - http://localhost:4000/posts/haskell-yaml-config by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/haskell-yaml-config', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/haskell-yaml-config', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
