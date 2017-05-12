@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Mounting Virtualbox Shared Folder in Manjaro Guest</title>
+        <description>Everytime I setup a Linux vm in Virtualbox and attempt to get shared folders working, I always run into issues. I decided to create a blog post to save my self the trouble of Googling so that I have the information in one place. In the various distros I have encountered issues with, Manjaro being the most recent, the issues have seemed to have been addressed by three things.</description>
+        <pubDate>Thu, 11 May 2017 00:00:00 -0500</pubDate>
+        <link>http://localhost:4000/posts/virtualbox-manjaro-guest-mount-shared-folder</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/virtualbox-manjaro-guest-mount-shared-folder</guid>
+      </item>
+    
+      <item>
         <title>Haskell YAML Config</title>
         <description>A quick example of reading a yaml config file in Haskell.</description>
         <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/slae-problem-5-1-msfvenom-analysis</link>
         <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-1-msfvenom-analysis</guid>
-      </item>
-    
-      <item>
-        <title>SLAE Problem 4: Custom Encoding Scheme</title>
-        <description>A demonstration of a custom encoding scheme</description>
-        <pubDate>Fri, 23 Dec 2016 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-4-custom-encoder</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-4-custom-encoder</guid>
       </item>
     
   </channel>
