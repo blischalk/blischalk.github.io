@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://localhost:4000/posts/nand-glitching-wink-hub-for-root</loc>
+<lastmod>2017-07-05T00:00:00-05:00</lastmod>
+</url>
+<url>
 <loc>http://localhost:4000/posts/virtualbox-manjaro-guest-mount-shared-folder</loc>
 <lastmod>2017-05-11T00:00:00-05:00</lastmod>
 </url>
@@ -187,6 +191,9 @@
 <loc>http://localhost:4000/tag/munging/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/nand-glitch/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/opcodes/</loc>
 </url>
 <url>
@@ -205,6 +212,9 @@
 <loc>http://localhost:4000/tag/ring/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/root/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/rspec/</loc>
 </url>
 <url>
@@ -217,6 +227,9 @@
 <loc>http://localhost:4000/tag/twitterfeed/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/uart/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/variables/</loc>
 </url>
 <url>
@@ -224,6 +237,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/tag/virtualbox/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/wink-hub/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/tag/yaml/</loc>
