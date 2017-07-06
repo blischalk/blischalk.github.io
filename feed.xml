@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>TP-Link TL-WR810N Firmware Analysis</title>
+        <description></description>
+        <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
+        <link>http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</guid>
+      </item>
+    
+      <item>
         <title>Nand Glitching Wink Hub For Root</title>
         <description>During the Offensive Internet Of Things Exploitation course the instructor demonstrates a technique called a &quot;NAND Glitch&quot; on a Wink Connected Home Hub IoT device. This technique allows a root shell to be acquired on a device which normally does not provide console access. This post outlines the process I used to replicate the NAND Glitch as well as discusses some of the &quot;gotchas&quot; that I encountered along the way.</description>
         <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/slae-problem-5-3-msfvenom-analysis</link>
         <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-3-msfvenom-analysis</guid>
-      </item>
-    
-      <item>
-        <title>SLAE Problem 5.2: Msfvenom Analysis of linux/x86/adduser</title>
-        <description>Analysis of Msfvenom shellcode: linux/x86/adduser</description>
-        <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/slae-problem-5-2-msfvenom-analysis</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-5-2-msfvenom-analysis</guid>
       </item>
     
   </channel>
