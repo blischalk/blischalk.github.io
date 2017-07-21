@@ -3,87 +3,87 @@
   <channel>
     <title>Brett Lischalk</title>
     <description></description>
-    <link>http://brettlischalk.com/</link>
-    <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
+    <link>http://localhost:4000</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
+    
+      <item>
+        <title>Asus RT-N15U Firmware Analysis</title>
+        <description>For the next firmware analysis task of the Offensive Internet Of Things Exploitation final project, I decided to analyze the Asus RT-N15U firmware version 3.0.0.4.376.3754. The following is the process I used to backdoor, emulate, and analyze this firmware as well as any security issues I could find.</description>
+        <pubDate>Thu, 20 Jul 2017 00:00:00 -0500</pubDate>
+        <link>http://localhost:4000/posts/asus-rtn15u-firmware-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/asus-rtn15u-firmware-analysis</guid>
+      </item>
     
       <item>
         <title>TP-Link TL-WR810N Firmware Analysis</title>
         <description>For one of the projects for the Offensive Internet Of Things Exploitation final exam I decided to try to analyze the firmware for the TP-Link TL-WR810N</description>
         <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/tplink-tlwr810n-firmware-analysis</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/tplink-tlwr810n-firmware-analysis</guid>
+        <link>http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</guid>
       </item>
     
       <item>
         <title>Nand Glitching Wink Hub For Root</title>
         <description>During the Offensive Internet Of Things Exploitation course the instructor demonstrates a technique called a &quot;NAND Glitch&quot; on a Wink Connected Home Hub IoT device. This technique allows a root shell to be acquired on a device which normally does not provide console access. This post outlines the process I used to replicate the NAND Glitch as well as discusses some of the &quot;gotchas&quot; that I encountered along the way.</description>
         <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/nand-glitching-wink-hub-for-root</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/nand-glitching-wink-hub-for-root</guid>
+        <link>http://localhost:4000/posts/nand-glitching-wink-hub-for-root</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/nand-glitching-wink-hub-for-root</guid>
       </item>
     
       <item>
         <title>Mounting Virtualbox Shared Folder in Manjaro Guest</title>
         <description>Everytime I setup a Linux vm in Virtualbox and attempt to get shared folders working, I always run into issues. I decided to create a blog post to save my self the trouble of Googling so that I have the information in one place. In the various distros I have encountered issues with, Manjaro being the most recent, the issues have seemed to have been addressed by three things.</description>
         <pubDate>Thu, 11 May 2017 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/virtualbox-manjaro-guest-mount-shared-folder</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/virtualbox-manjaro-guest-mount-shared-folder</guid>
+        <link>http://localhost:4000/posts/virtualbox-manjaro-guest-mount-shared-folder</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/virtualbox-manjaro-guest-mount-shared-folder</guid>
       </item>
     
       <item>
         <title>Haskell YAML Config</title>
         <description>A quick example of reading a yaml config file in Haskell.</description>
         <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/haskell-yaml-config</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/haskell-yaml-config</guid>
+        <link>http://localhost:4000/posts/haskell-yaml-config</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/haskell-yaml-config</guid>
       </item>
     
       <item>
         <title>Haskell TCP Fuzzer</title>
         <description>An example TCP fuzzer written in Haskell</description>
         <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/haskell-tcp-fuzzer</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/haskell-tcp-fuzzer</guid>
+        <link>http://localhost:4000/posts/haskell-tcp-fuzzer</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/haskell-tcp-fuzzer</guid>
       </item>
     
       <item>
         <title>Linux Daemon</title>
         <description>How to write a Linux daemon.</description>
         <pubDate>Tue, 17 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/linux-daemon</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/linux-daemon</guid>
+        <link>http://localhost:4000/posts/linux-daemon</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/linux-daemon</guid>
       </item>
     
       <item>
         <title>Opcode Script</title>
         <description>Opcodes from Assembly Instructions</description>
         <pubDate>Sun, 15 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/asm-opcode-function</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/asm-opcode-function</guid>
+        <link>http://localhost:4000/posts/asm-opcode-function</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/asm-opcode-function</guid>
       </item>
     
       <item>
         <title>SLAE Problem 7: Create a Custom Crypter</title>
         <description>SLAE Problem 7: Create a Custom Crypter</description>
         <pubDate>Tue, 10 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-7-custom-crypter</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-7-custom-crypter</guid>
+        <link>http://localhost:4000/posts/slae-problem-7-custom-crypter</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-7-custom-crypter</guid>
       </item>
     
       <item>
         <title>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</title>
         <description>SLAE Problem 6: Shell-Storm.com Shellcode Analysis and Polymorphic Modification</description>
         <pubDate>Mon, 09 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-6-shell-storm-polymorphism</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-6-shell-storm-polymorphism</guid>
-      </item>
-    
-      <item>
-        <title>SLAE Problem 5.3: Msfvenom Analysis of linux/x86/exec</title>
-        <description>Analysis of Msfvenom shellcode: linux/x86/exec</description>
-        <pubDate>Tue, 03 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://brettlischalk.com//posts/slae-problem-5-3-msfvenom-analysis</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/slae-problem-5-3-msfvenom-analysis</guid>
+        <link>http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/slae-problem-6-shell-storm-polymorphism</guid>
       </item>
     
   </channel>
