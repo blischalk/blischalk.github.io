@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://localhost:4000/posts/kankun-smart-plug-analysis</loc>
+<lastmod>2017-08-14T00:00:00-05:00</lastmod>
+</url>
+<url>
 <loc>http://localhost:4000/posts/asus-rtn15u-firmware-analysis</loc>
 <lastmod>2017-07-20T00:00:00-05:00</lastmod>
 </url>
@@ -124,6 +128,9 @@
 <loc>http://localhost:4000/tag/analysis/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/android/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/asm/</loc>
 </url>
 <url>
@@ -188,6 +195,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/tag/jenkins/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/kankun/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/tag/linux/</loc>

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Kankun Smart Plug Analysis</title>
+  <meta name="description" content="During the Offensive Internet Of Things course, the Kankun Smart Plug is analyzed in various ways including: using Jadx to decompile and analyze the mobile app, acquiring and analyzing the device's firmware, and a nalyzing the network traffic.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Kankun Smart Plug Analysis">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/kankun-smart-plug-analysis">
+  <meta property="og:description" content="During the Offensive Internet Of Things course, the Kankun Smart Plug is analyzed in various ways including: using Jadx to decompile and analyze the mobile app, acquiring and analyzing the device's firmware, and a nalyzing the network traffic.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/kankun-smart-plug-analysis">
+  <meta name="twitter:title" content="Kankun Smart Plug Analysis">
+  <meta name="twitter:description" content="During the Offensive Internet Of Things course, the Kankun Smart Plug is analyzed in various ways including: using Jadx to decompile and analyze the mobile app, acquiring and analyzing the device's firmware, and a nalyzing the network traffic.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Kankun Smart Plug Analysis</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                August 14, 2017
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  6 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/firmware">firmware</a>
+                
+                  <a href="/tag/analysis">analysis</a>
+                
+                  <a href="/tag/kankun">kankun</a>
+                
+                  <a href="/tag/android">android</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>This blog post has been created for completing the requirements of the
+SecurityTube Offensive Internet of Things course.</p>
+
+<p><a href="http://www.securitytube-training.com/online-courses/offensive-internet-of-things-exploitation/index.html">Offensive Internet Of Things Exploitation</a></p>
+
+<p>Student ID: IoTE- 778</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>During the Offensive Internet Of Things course the
+<a href="https://www.amazon.com/Kankun-Socket-Remote-iPhone-Smartphone/dp/B00N8N5NNK">Kankun Smart Plug</a>:
+<img src="/assets/Kankun/AmazonKankunSmartPlug.png" alt="Kankun Smart Plug" />
+is analyzed in various ways including:</p>
+
+<ul>
+  <li>Using Jadx to decompile and analyze the mobile app</li>
+  <li>Acquiring and analyzing the device’s firmware</li>
+  <li>Analyzing the network traffic</li>
+  <li>Utilizing
+<a href="https://github.com/0x00string/kankuncontroller">Kankun Controller</a>
+to perform various attacks on the device</li>
+</ul>
+
+<p>My goal with this post is to:</p>
+
+<ul>
+  <li>Replicate the techniques outlined in the course</li>
+  <li>Document the process and any gotchas encountered along the way</li>
+</ul>
+
+<h2 id="analyzing-the-android-app-with-unzip-and-jadx">Analyzing The Android App with Unzip and Jadx</h2>
+
+<p>The first thing covered which I wanted to attempt was decompiling the
+Android applications with
+<a href="https://github.com/skylot/jadx">Jadx</a>. Prior to taking this course I
+didn’t realize it was possible to decompile an Android application
+back into <code class="highlighter-rouge">.java</code> files. I was under the impression that the best Java
+decompiling you could get was to <code class="highlighter-rouge">.class</code> files. After a bit of
+investigation, this seems to be because Android applications are
+actually <code class="highlighter-rouge">.dex</code> (Davlik Executable Files) zipped into <code class="highlighter-rouge">.apk</code>
+archives. This is something I’ve made a mental note to revisit and
+learn more about.</p>
+
+<p>After looking in the manual that came with the Kankun Smart Plug, it
+indicates that you can scan a QR code to get the Android or iOS apps,
+or you can download the Android <code class="highlighter-rouge">.apk</code> from here:
+http://kk.huafeng.com:8081/none/android/Smartwifi.apk</p>
+
+<p>With a little wget magic we have out Android App:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>wget http://kk.huafeng.com:8081/none/android/Smartwifi.apk
+</code></pre>
+</div>
+
+<p>After a <code class="highlighter-rouge">brew install jadx</code>, <code class="highlighter-rouge">jadx Smartwifi.apk</code>, and <code class="highlighter-rouge">unzip
+Smartwifi.apk</code> we have an un-archived Android application as well as a
+decompiled version of the Android application. Once this is done, a
+few interesting things are noticed:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ls lib/armeabi/
+libNDK_03.id0  libNDK_03.id1  libNDK_03.nam  libNDK_03.so
+</code></pre>
+</div>
+
+<p>It appears that there is a “Shared Object File”, analogous to a
+Windows DLL that can be analyzed. This would seem to indicate that the
+application makes some native calls. This could be interesting.</p>
+
+<p>Inside of the decompiled Android app, the following application
+structure exists:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ls Smartwifi
+AndroidManifest.xml  adapt/               cache/               custom/              res/
+Smartwifi.iml        android/             com/                 hangzhou/
+</code></pre>
+</div>
+
+<p>Looking at the application structure seems to indicate that the
+“hangzhou” directory most likely contains the application
+namespaces. Upon further investigtion we find:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ ls Smartwifi/hangzhou/
+kankun/ zx/
+
+$ ls Smartwifi/hangzhou/kankun/
+AlertUtil.java               DeviceTaskActivity.java      NumericWheelAdapter.java     ShowDialogActivity.java      WheelView.java
+ArrayWheelAdapter.java       GetElectricityService.java   OnWheelChangedListener.java  SmartwifiActivity.java       WifiAdmin.java
+Config.java                  GuideActivity.java           OnWheelScrollListener.java   UpdateModel.java             WifiJniC.java
+ControlHelpActivity.java     JudgeDate.java               ProtectService.java          ViewPagerAdapter.java        dbHelper.java
+DBManager.java               NetStateUtil.java            ScreenInfo.java              WheelAdapter.java
+DeviceActivity.java          NetworkTool.java             SelectPicPopupWindow.java    WheelMain.java
+
+$ ls Smartwifi/hangzhou/zx/
+BuildConfig.java      PreferencesUtil.java  R.java
+</code></pre>
+</div>
+
+<p>In fact this does seem to be where the application namespaces are located.</p>
+
+<h2 id="calling-strings-on-the-shared-object">Calling Strings on the Shared Object</h2>
+
+<p>Circling back to <code class="highlighter-rouge">libNDK_03.so</code> which was shown earlier, we can run
+the <code class="highlighter-rouge">strings</code> command on it to see if there are any interesting
+strings found. Lets try:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>strings libNDK_03.so
+
+DecryptData
+Java_hangzhou_kankun_WifiJniC_decode
+EncryptData
+Java_hangzhou_kankun_WifiJniC_encode
+
+fdsl;mewrjope456fds4fbvfnjwaugfo &lt;--------- Very Interesting.........
+
+aes_set_key
+aes_encrypt
+aes_decrypt
+</code></pre>
+</div>
+
+<p>Using strings on the shared object yields some interesting finds. We learn that:</p>
+
+<ul>
+  <li>The Android app does in fact ues JNI to interface with the shared object</li>
+  <li>The library appears to be using aes encryption</li>
+  <li>We find a string that is 32 bytes long or 8 * 32 = 256 bits long…</li>
+</ul>
+
+<p>Since we have a 256 bit string along with the fact that the Android
+app is performing aes encryption, it is very likely that the 256 bit
+string is actually the AES-256 bit encryption key. We’ll hold on to
+that for later…</p>
+
+<h2 id="android-app-source-code-review">Android App Source Code Review</h2>
+
+<p>Reviewing the souce code we find some intesesting things:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kn">package</span> <span class="n">hangzhou</span><span class="o">.</span><span class="na">zx</span><span class="o">;</span>
+
+<span class="o">..</span> <span class="n">snip</span> <span class="o">..</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">PreferencesUtil</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="n">String</span> <span class="n">filePathString</span> <span class="o">=</span> <span class="s">"http://app.jkonke.com/kkeps.bin"</span><span class="o">;</span></code></pre></figure>
+
+<p>The <code class="highlighter-rouge">PreferencesUtil</code> file seems to indicate where the firmware can be
+acquired for firmware analysis. We’ll explore that later.</p>
+
+<p>In <code class="highlighter-rouge">WifiJniC.java</code> we find the function definitions for calling the
+native code in the shared object:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kn">package</span> <span class="n">hangzhou</span><span class="o">.</span><span class="na">kankun</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">WifiJniC</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">libSoName</span> <span class="o">=</span> <span class="s">"NDK_03"</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">native</span> <span class="kt">int</span> <span class="nf">add</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i2</span><span class="o">);</span>
+
+    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">codeMethod</span><span class="o">(</span><span class="n">String</span> <span class="n">str</span><span class="o">);</span>
+
+    <span class="kd">public</span> <span class="kd">native</span> <span class="n">String</span> <span class="nf">decode</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">bArr</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">);</span>
+
+    <span class="kd">public</span> <span class="kd">native</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">encode</span><span class="o">(</span><span class="n">String</span> <span class="n">str</span><span class="o">,</span> <span class="kt">int</span> <span class="n">i</span><span class="o">);</span>
+
+    <span class="kd">static</span> <span class="o">{</span>
+        <span class="n">System</span><span class="o">.</span><span class="na">loadLibrary</span><span class="o">(</span><span class="n">libSoName</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Looking at the API that the shared library seems to provide, it would
+seem that if we look for the encode / decode function calls within the
+application, that we can get an idea of the types of messages that the
+Android App sends and receives from the smartplug. Within
+<code class="highlighter-rouge">DeviceActivity.java</code> we find various incantations similar to the following:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="o">..</span> <span class="n">snip</span> <span class="o">..</span>
+
+<span class="k">while</span> <span class="o">(!</span><span class="n">getAck</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">try</span> <span class="o">{</span>
+	<span class="n">address</span> <span class="o">=</span> <span class="n">InetAddress</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">dev_ip</span><span class="o">);</span>
+	<span class="n">udp_cmd</span> <span class="o">=</span> <span class="s">"lan_phone%"</span> <span class="o">+</span> <span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">dev_mac</span> <span class="o">+</span> <span class="s">"%"</span> <span class="o">+</span> <span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">dev_word</span> <span class="o">+</span> <span class="s">"%"</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="na">sendcmd</span><span class="o">;</span>
+	<span class="n">cmd_buf</span> <span class="o">=</span> <span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">jnic</span><span class="o">.</span><span class="na">encode</span><span class="o">(</span><span class="n">udp_cmd</span><span class="o">,</span> <span class="n">udp_cmd</span><span class="o">.</span><span class="na">length</span><span class="o">());</span>
+	<span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">cmdSocket</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="k">new</span> <span class="n">DatagramPacket</span><span class="o">(</span><span class="n">cmd_buf</span><span class="o">,</span> <span class="n">cmd_buf</span><span class="o">.</span><span class="na">length</span><span class="o">,</span> <span class="n">address</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">DeviceActivity</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">dev_port</span><span class="o">).</span><span class="na">intValue</span><span class="o">()));</span>
+  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e4</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">e4</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+  <span class="o">}</span>
+
+<span class="o">..</span> <span class="n">snip</span> <span class="o">..</span></code></pre></figure>
+
+<p>With this we can glean the following information about the messages
+that are used for communication:</p>
+
+<ul>
+  <li>It appears that the app communicates to the device over UDP</li>
+  <li>There is a prefix of <code class="highlighter-rouge">lan_phone</code> or <code class="highlighter-rouge">wan_phone</code>. This most likely
+has to do with whether the device is setup to be a wireless access
+point on its own, or whether it is setup as a device connected to a
+router on the wireless network.</li>
+  <li>Followed by the mac address of the smartplug</li>
+  <li>Followed by a password maybe???</li>
+  <li>Followed by a command</li>
+  <li>Sometimes followed by an argument for the command</li>
+</ul>
+
+<h2 id="summary">Summary</h2>
+
+<p>At this point we have gathered a good bit of information about how
+this device works and perhaps some secrets that could let us have some
+fun analysing the network traffic. The course mentions a tool for
+manipulating the Kankun smartplug called:
+<a href="https://github.com/0x00string/kankuncontroller">Kankuncontroller</a> I
+haven’t had a chance to play around with it yet but looking at the
+source code shows that the author has figured out all kinds of ways to
+play with the smart plug and get it to do things without having to use
+the mobile app.</p>
+
+<p>This post is getting a bit long so I think this is a good point to
+stop and I’ll make a part 2 covering analysis of the network traffic
+as well as analysis of the firmware.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Kankun Smart Plug Analysis - http://localhost:4000/posts/kankun-smart-plug-analysis by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/kankun-smart-plug-analysis', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/kankun-smart-plug-analysis', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
