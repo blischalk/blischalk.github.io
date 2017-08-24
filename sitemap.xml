@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://localhost:4000/posts/practical-malware-analysis-lab-1-1</loc>
+<lastmod>2017-08-24T00:00:00-05:00</lastmod>
+</url>
+<url>
 <loc>http://localhost:4000/posts/kankun-smart-plug-analysis</loc>
 <lastmod>2017-08-14T00:00:00-05:00</lastmod>
 </url>
@@ -206,6 +210,9 @@
 <loc>http://localhost:4000/tag/mac/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/tag/malware/</loc>
+</url>
+<url>
 <loc>http://localhost:4000/tag/manjaro/</loc>
 </url>
 <url>
@@ -228,6 +235,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/tag/opcodes/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/practical-malware-analysis/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/tag/programming/</loc>
