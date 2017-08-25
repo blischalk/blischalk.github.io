@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Practical Malware Analysis: Lab 1-2</title>
+        <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 1-2 malware.</description>
+        <pubDate>Thu, 24 Aug 2017 00:00:00 -0500</pubDate>
+        <link>http://localhost:4000/posts/practical-malware-analysis-lab-1-2</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/practical-malware-analysis-lab-1-2</guid>
+      </item>
+    
+      <item>
         <title>Practical Malware Analysis: Lab 1-1</title>
         <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 1-1 malware.</description>
         <pubDate>Thu, 24 Aug 2017 00:00:00 -0500</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Tue, 17 Jan 2017 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/linux-daemon</link>
         <guid isPermaLink="true">http://localhost:4000/posts/linux-daemon</guid>
-      </item>
-    
-      <item>
-        <title>Opcode Script</title>
-        <description>Opcodes from Assembly Instructions</description>
-        <pubDate>Sun, 15 Jan 2017 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/asm-opcode-function</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/asm-opcode-function</guid>
       </item>
     
   </channel>
