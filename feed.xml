@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Practical Malware Analysis: Lab 1-4</title>
+        <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 1-4 malware.</description>
+        <pubDate>Mon, 28 Aug 2017 00:00:00 -0500</pubDate>
+        <link>http://localhost:4000/posts/practical-malware-analysis-lab-1-4</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/practical-malware-analysis-lab-1-4</guid>
+      </item>
+    
+      <item>
         <title>Practical Malware Analysis: Lab 1-3</title>
         <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 1-3 malware.</description>
         <pubDate>Sun, 27 Aug 2017 00:00:00 -0500</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
         <link>http://localhost:4000/posts/haskell-yaml-config</link>
         <guid isPermaLink="true">http://localhost:4000/posts/haskell-yaml-config</guid>
-      </item>
-    
-      <item>
-        <title>Haskell TCP Fuzzer</title>
-        <description>An example TCP fuzzer written in Haskell</description>
-        <pubDate>Sun, 05 Feb 2017 00:00:00 -0600</pubDate>
-        <link>http://localhost:4000/posts/haskell-tcp-fuzzer</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/haskell-tcp-fuzzer</guid>
       </item>
     
   </channel>
