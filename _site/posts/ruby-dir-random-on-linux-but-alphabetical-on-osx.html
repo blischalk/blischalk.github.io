@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Ruby Dir "Random" on Linux but Alphabetical on OSX</title>
+  <meta name="description" content="Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized. What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops. This has to be some sort of weird Mac / Linux difference.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Ruby Dir "Random" on Linux but Alphabetical on OSX">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx">
+  <meta property="og:description" content="Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized. What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops. This has to be some sort of weird Mac / Linux difference.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx">
+  <meta name="twitter:title" content="Ruby Dir "Random" on Linux but Alphabetical on OSX">
+  <meta name="twitter:description" content="Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized. What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops. This has to be some sort of weird Mac / Linux difference.">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Ruby Dir "Random" on Linux but Alphabetical on OSX</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                July 3, 2013
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  2 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/jenkins">jenkins</a>
+                
+                  <a href="/tag/linux">linux</a>
+                
+                  <a href="/tag/mac">mac</a>
+                
+                  <a href="/tag/rspec">rspec</a>
+                
+                  <a href="/tag/ruby">ruby</a>
+                
+                  <a href="/tag/rails">rails</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>Recently after a co-worker pushed code to our continuous integration server Jenkins was saying that the build was broken and that a constant was being called that wasn’t initialized.  What was strange is that the code my co-worker pushed ran just fine when I ran it on my work Mac Laptop as well as some of my other co-workers Mac Laptops.  This has to be some sort of weird Mac / Linux difference.</p>
+
+<p>I ran the code on a Ubuntu system (our CI server was CentOS) and sure enough it blew up with the same undefined constant error.  This seemed to prove that this had something to do with the Mac / Linux difference between our development machines and our CI server.</p>
+
+<p>In our spec/spec_helper.rb file is the line</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">Dir</span><span class="p">[</span><span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"spec/support/**/*.rb"</span><span class="p">)].</span><span class="nf">each</span> <span class="p">{</span><span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="nb">require</span> <span class="n">f</span><span class="p">}</span></code></pre></figure>
+
+<p>This is the line that includes all of the support files for the Rspec specs.  I ran a pry on ~Dir[Rails.root.join(“spec/support/<em>*/</em>.rb”)]~ on the linux box and then again on my mac and sure enough on Mac:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">support/models_helper/cas/server_helpers.rb
+spec/support/models_helper.rb</code></pre></figure>
+
+<p>On Linux:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">spec/support/models_helper.rb
+support/models_helper/cas/server_helpers.rb</code></pre></figure>
+
+<p>The order in which Ruby’s “Dir” command was returning its results was alphabetical on Mac and what seemed to be random on Linux.  After doing a little research I came upon this <a href="http://stackoverflow.com/questions/5529895/why-does-ruby-seem-to-access-files-in-a-directory-randomly">StackOverflow thread</a>.</p>
+
+<p>It seems that this is not an issue with Ruby but just a difference in operating systems.  The line in the spec helper file that says, <strong>“Requires supporting ruby files with custom matchers and macros, etc, in spec/support/ and its subdirectories.”</strong> appears to be slightly inaccurate.  To get around this issue we just ended up calling require at the top of the support file where the constant was referenced and that ensured that the constant was loaded before the file referenced the constant.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Ruby Dir "Random" on Linux but Alphabetical on OSX - http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/ruby-dir-random-on-linux-but-alphabetical-on-osx', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Twitterfeed bit.ly URL Links Broken and Link to Tinyurl</title>
+  <meta name="description" content="After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken. Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Twitterfeed bit.ly URL Links Broken and Link to Tinyurl">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl">
+  <meta property="og:description" content="After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken. Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl">
+  <meta name="twitter:title" content="Twitterfeed bit.ly URL Links Broken and Link to Tinyurl">
+  <meta name="twitter:description" content="After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken. Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Twitterfeed bit.ly URL Links Broken and Link to Tinyurl</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                March 23, 2012
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  1 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/atom">atom</a>
+                
+                  <a href="/tag/twitterfeed">twitterfeed</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>After setting up a Twitterfeed account to populate my social networking profiles with data from my blog’s Atom feed, I immediately noticed that the shortened bit.ly links that Twitterfeed was sending to my social media sites were broken.  Even though I had selected bit.ly as the service I would like to use to shorten my url’s, the links would show up on Twitter, Facebook, and Linkedin as Tinyurl links. ( Tinyurl is another service which I don’t currently use and hadn’t selected ).</p>
+
+<p>After searching around the internet I came across this post:
+<a href="https://getsatisfaction.com/twitterfeed/topics/why_does_my_twitterfeed_post_with_a_tinyurl_link_when_bit_ly_is_selected">https://getsatisfaction.com/twitterfeed/topics/why_does_my_twitterfeed_post_with_a_tinyurl_link_when_bit_ly_is_selected</a></p>
+
+<p>The response by Rex Dixon seemed to solve my problem. “A common reason for this is that the link elements don’t contain the whole URL, i.e. they don’t contain the full “http://domain.com/etc/”.</p>
+
+<p>After looking at my posts_feed.atom.builder template file I noticed that I had:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">feed</span><span class="p">.</span><span class="nf">entry</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="ss">:url</span> <span class="o">=&gt;</span> <span class="s2">"/posts/</span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">to_param</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">entry</span><span class="o">|</span></code></pre></figure>
+
+<p>Sure enough, I was telling my atom feed that the post path was root relative instead of absolute.  I changed the previous line to:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">feed</span><span class="p">.</span><span class="nf">entry</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="ss">:url</span> <span class="o">=&gt;</span> <span class="s2">"http://brettlischalk.com/posts/</span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">to_param</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">entry</span><span class="o">|</span></code></pre></figure>
+
+<p>and my links seemed to start working properly.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Twitterfeed bit.ly URL Links Broken and Link to... - http://localhost:4000/posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/twitterfeed-bit-ly-url-links-broken-and-link-to-tinyurl', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
