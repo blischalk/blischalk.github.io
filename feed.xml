@@ -7,6 +7,14 @@
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Practical Malware Analysis: Lab 3-2</title>
+        <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 3-2 malware.</description>
+        <pubDate>Sun, 31 Dec 2017 00:00:00 -0600</pubDate>
+        <link>http://localhost:4000/posts/practical-malware-analysis-lab-3-2</link>
+        <guid isPermaLink="true">http://localhost:4000/posts/practical-malware-analysis-lab-3-2</guid>
+      </item>
+    
+      <item>
         <title>Practical Malware Analysis: Lab 3-1</title>
         <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 3-1 malware.</description>
         <pubDate>Wed, 20 Sep 2017 00:00:00 -0500</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
         <link>http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</link>
         <guid isPermaLink="true">http://localhost:4000/posts/tplink-tlwr810n-firmware-analysis</guid>
-      </item>
-    
-      <item>
-        <title>Nand Glitching Wink Hub For Root</title>
-        <description>During the Offensive Internet Of Things Exploitation course the instructor demonstrates a technique called a &quot;NAND Glitch&quot; on a Wink Connected Home Hub IoT device. This technique allows a root shell to be acquired on a device which normally does not provide console access. This post outlines the process I used to replicate the NAND Glitch as well as discusses some of the &quot;gotchas&quot; that I encountered along the way.</description>
-        <pubDate>Wed, 05 Jul 2017 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/posts/nand-glitching-wink-hub-for-root</link>
-        <guid isPermaLink="true">http://localhost:4000/posts/nand-glitching-wink-hub-for-root</guid>
       </item>
     
   </channel>
