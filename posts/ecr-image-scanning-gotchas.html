@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Amazon ECR Image Scanning Gotchas</title>
+  <meta name="description" content="Things you should know about the "vulnerabilities" ECR image scan results report">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Amazon ECR Image Scanning Gotchas">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:4000/posts/ecr-image-scanning-gotchas">
+  <meta property="og:description" content="Things you should know about the "vulnerabilities" ECR image scan results report">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://localhost:4000/posts/ecr-image-scanning-gotchas">
+  <meta name="twitter:title" content="Amazon ECR Image Scanning Gotchas">
+  <meta name="twitter:description" content="Things you should know about the "vulnerabilities" ECR image scan results report">
+  <meta name="twitter:image" content="http://localhost:4000/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://localhost:4000/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-6246123062809579",
+      enable_page_level_ads: true
+    });
+  </script>
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Amazon ECR Image Scanning Gotchas</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                December 1, 2020
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  3 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/docker aws ecr clair vulnerabilities compliance scanning">docker aws ecr clair vulnerabilities compliance scanning</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>After working with ECR image scanning for a while now I felt that there are
+some lessons learned that would be worth sharing for others who may use the tool. Here are a couple gotchas I’ve encountered that you may be interested to know about.</p>
+
+<h2 id="kernel-vulnerability-false-positives">Kernel Vulnerability False Positives</h2>
+
+<p>As docker images don’t contain a linux kernel and use the host system kernel,
+you may be surprised to find that Amazon ECR image scanning will report kernel vulnerabilities for your images even though images don’t have an
+OS kernel. Why might this be? After investigating the issue I learned that under
+the hood, Amazon image scanning <a href="https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html">uses the Clair vulnerability scanner</a> - <a href="https://github.com/quay/clair">Clair</a> to scan images for vulnerabilities. And after further research I found <a href="https://github.com/quay/clair/blob/master/Documentation/running-clair.md">this</a>:</p>
+
+<blockquote>
+  <p>I’m seeing Linux kernel vulnerabilities in my image, that doesn’t make any sense since containers share the host kernel!</p>
+</blockquote>
+
+<blockquote>
+  <p>Many container base images using Linux distributions as a foundation will install dummy kernel packages that do nothing but satisfy their package manager’s dependency requirements. The Clair developers have taken the stance that Clair should not filter results, providing the most accurate data as possible to user interfaces that can then apply filters that make sense for their users.</p>
+</blockquote>
+
+<p>Two major problems that this causes in Amazons Clair implementation is that:</p>
+
+<ol>
+  <li>AWS ECR image scanning doesn’t provide any mechanism to triage vulnerabilities and maintain state. This means that there is no way to mark the kernel issues as false positives removing them from the current and/or subsequent scans.</li>
+  <li>If these scan results are being used for compliance audits, you may find
+yourself explaining to management and auditors how containerization works
+  and to pay no attention to the man behind the curtain because kernel
+  vulnerabilities don’t impact images; linux distros include dummy
+  packages; and the Clair maintainers feel etc. etc.</li>
+</ol>
+
+<h2 id="vendor-dependant-vulnerabilities--false-positives">Vendor Dependant Vulnerabilities / False Positives</h2>
+
+<p>This problem is not unique to Clair or Amazon’s implementation of it, but
+something that you will definitely encounter when you start doing image
+vulnerability scans. There are many “vulnerabilities” that image scanning tools
+like Clair will report that are actually contested by the linux distro’s
+security team and have indicated that the distro is not vulnerable. As an
+example, even though a scan may indicate that Nginx version 1234 may have CVE-xxx-xxxx, because the
+distro doesn’t compile that package with a particular compiler flag set, then
+the distro’s security team considers the finding to be a false positive or
+unimportant.</p>
+
+<p>Obviously it is not possible for scanners to know all of the conversations that take place in the various linux distro’s bug trackers and how one distro may be compiling a package different than another. The tool is just doing the best it can. However, this is something to be aware of and going along with the points above:</p>
+
+<ol>
+  <li>Since there is no way to triage issues in AWS ECR image scanning, this adds a
+lot of noise to sift through. Keeping track of what you have researched
+vs. what you haven’t also becomes more difficult.</li>
+  <li>If these results are being used for compliance audits, again be prepared to
+have a laundry list of explanations along the lines of, “the security team of
+distro x has indicated that their distro doesn’t compile the package with the
+flag that would make the package vulnerable and so this is a false
+positive, etc. etc.”</li>
+</ol>
+
+<h2 id="lessons-learned">Lessons Learned</h2>
+
+<p>I learned quite a bit about the current state of image scanning during my
+experience with Amazon ECR image scanning. I would love for
+Amazon to build out ther image scanning functionality a bit more to allow for
+triaging vulnerabilities the way you might in a tool like BlackDuck or Coverity.
+If vulnerability reporting for compliance obligations is important to you though, selecting
+another tool that provides more features / configurability like
+<a href="https://github.com/aquasecurity/trivy">Trivy</a> may be a better solution for your
+image scanning needs.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Amazon ECR Image Scanning Gotchas - http://localhost:4000/posts/ecr-image-scanning-gotchas by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/posts/ecr-image-scanning-gotchas', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://localhost:4000/posts/ecr-image-scanning-gotchas', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
