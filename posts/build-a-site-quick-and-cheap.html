@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Build A Web Site/App Quick and Cheap!</title>
+  <meta name="description" content="Cheapest and fastest ways to get your project online">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Build A Web Site/App Quick and Cheap!">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://brettlischalk.com//posts/build-a-site-quick-and-cheap">
+  <meta property="og:description" content="Cheapest and fastest ways to get your project online">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://brettlischalk.com//posts/build-a-site-quick-and-cheap">
+  <meta name="twitter:title" content="Build A Web Site/App Quick and Cheap!">
+  <meta name="twitter:description" content="Cheapest and fastest ways to get your project online">
+  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-6246123062809579",
+      enable_page_level_ads: true
+    });
+  </script>
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Build A Web Site/App Quick and Cheap!</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                December 19, 2020
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  5 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/thrifty cheap fast webapp php ruby static-site-generator gitlab github">thrifty cheap fast webapp php ruby static-site-generator gitlab github</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <h1 id="build-a-web-siteapp-quick-and-cheap">Build A Web Site/App Quick and Cheap!</h1>
+
+<p>Recently I needed to make some updates to a Rails app I built many years ago for
+a friend. It is deployed on Heroku, uses S3 for file uploads, and
+costs ~$7 a month on Heroku’s Hobby plan. While working on it a couple things
+occurred to me:</p>
+
+<ol>
+  <li>I love Platform as a Service (PaaS) for deploying applications so that I
+don’t have to deal with setup and maintenance of infrastructure. OS level updates, etc.</li>
+  <li>$7 a month still seems sort of expensive for a brochure type site that
+someone only logs in to update a few times a year.</li>
+</ol>
+
+<p>This got me wondering if you could deploy a basic web app for cheaper than
+Heroku’s offering and what sort of sacrifices you might have to make to achieve
+it. Now I know you’ll all mention the hack to use Heroku’s Free tier and then
+use New Relic or Pingdom to keep your app awake but Heroku got wise to this and
+forces apps to sleep after exhausting free hours. One of the criteria I am
+defining here is that no tom foolery should be involved with running the app
+cheaply!</p>
+
+<h2 id="potential-options">Potential Options</h2>
+
+<h3 id="static-site-generators-on-gitlab--github--cloudflare-pages">Static Site Generators on GitLab / GitHub / Cloudflare Pages</h3>
+
+<p>In doing some research on the topic, the absolute cheapest and fastest option would be a
+static website deployed on <a href="https://docs.gitlab.com/ee/user/project/pages/">GitLab</a> or <a href="https://pages.github.com/">GitHub pages</a>.</p>
+
+<p><em>NOTE: Cloudflare also recently entered the static website market, also adding something called workers for added backend functionality, called <a href="https://pages.cloudflare.com/">Cloudflare Pages</a>. Their offering is also free</em> These are completely free,
+support static site generators, offer ssl certificates, CI/CD pipelines, etc.</p>
+
+<p><em>ANOTHER NOTE: <a href="https://aws.amazon.com/getting-started/hands-on/host-static-website/">Amazon
+S3</a> is
+another low price option for hosting a static website however, beyond the 12
+months free tier, you would likely be spending a couple of dollars a month
+which, it seems like the free GitLab / GitHub / Cloudflare pages would be the
+better opton given it is free, provides version control, and provides CI/CD
+pipelines.</em></p>
+
+<p>Really GitLab / GitHub is an awesome value and is my #1 choice for deploying a site for
+cheap. The down side here is that is a static web site and not a web app (though
+Cloudflare Pages seems to intend to change that). If you are trying to build something for a client who then wanted additonal functionality; content management, etc. then this option may start to break down and you may need something that provides the ability for backend development. This leads us to the next option…</p>
+
+<h3 id="amazon-lightsail-and-bitnami">Amazon Lightsail and Bitnami</h3>
+
+<p>The next cheapest and fastest option I could find is <a href="https://aws.amazon.com/lightsail/">Amazon
+Lightsail</a> and <a href="https://bitnami.com/stacks">Bitnami
+images</a>.
+Amazon Lightsail can deploy the smallest VPS instance for $3.50 a month and run
+Bitnami images of Wordpress, Drupal, Node.js, and various other stacks. The
+great thing about Bitnami images is that they come pretty much pre-configured
+for you to run your app. Turnkey VPS for your app technology of choice. The one
+down side I found is that it doesn’t seem that there is a Bitnami image for
+deploying Ruby on Rails so you would likely have to build out that stack
+yourself to host a Rails app; which, is sort of a bummer.</p>
+
+<p>The other down side of this option is that there is now infrastructure to maintain. Most of the configuration / installation of packages and such is taken care of so you do reap the benefits of that. However, when there are vulnerabilities in mysql, nginx, etc. or OS updates are necessary, it will still be on the user to take care of it. After thinking about this though it seems like it may not be such a big deal. In the spirit of “Cattle, Not Pets”, you could likely manage the provisioning of new Amazon Lightsail images via Terraform and code deployment via Ansible, Capistrano, Mia, or just some shell scripts. It wouldn’t be as hands off as Heroku, but could likely be as simple as provision a new server and deploy the app, then swap the DNS.</p>
+
+<h3 id="digital-ocean-5-droplet">Digital Ocean $5 Droplet</h3>
+
+<p>Getting a little more expensive I came across the <a href="https://www.digitalocean.com/products/droplets/">$5 droplet from Digital
+Ocean</a>. Digital Ocean has
+one-click installs of common stacks / frameworks similar to AWS Lightsail /
+Bitnami.</p>
+
+<h3 id="godaddy-bluehost-appgator-a2hosting-etc">GoDaddy, BlueHost, AppGator, A2Hosting, Etc.</h3>
+
+<p>There are obviously other deals out there with some of the other hosting
+companies like GoDaddy and such but you start to encounter things like:</p>
+
+<ul>
+  <li>Needing to sign multi-year contracts to get the cheap price</li>
+  <li>Price increase after renewal</li>
+  <li>Access restrictions to the server</li>
+  <li>Needing to install / configure things yourself</li>
+</ul>
+
+<h3 id="an-aside-only-for-small-stuff">An Aside: Only For Small Stuff</h3>
+
+<p>Obviously this fast and cheap approach I am researching here is really only
+applicable to very small projects. I see this as being a solution for the
+freelancer building brochure sites for small businesses who may need some back
+end programming logic but aren’t needing Elasticsearch clusters,
+multi-availability zone auto-scaling, message queue infrastructure, etc.</p>
+
+<h3 id="another-aside-openshift">Another Aside: Openshift</h3>
+
+<p>I remember using Red Hat Openshift for a project long ago and remember / have
+read that its priced pretty low. However, I had some difficulty revisiting it
+recently. Apparently my account is in a weird state that needs a “complete profile” which, when I complete it, it sends me back to do it all over again. Soooo… Not going to explore that until they sort that out.</p>
+
+<h3 id="one-more-amazon-aws-free-tier">One More: Amazon AWS Free Tier</h3>
+
+<p>Someone will also invariably offer the Amazon Free tier as an opiton for cheap
+hosting. However, this is only available for 12 months for EC2, (I’ve been
+using AWS for much longer than this so that ship has sailed.) Someone may also
+mention just creating new / multiple accounts, etc. but again then, we’re back
+to tom foolery.</p>
+
+<p>Amazon AWS also offers some “Always Free Tier” options such as Lambda,
+Dynamo DB, Amazon SNS, etc. but I haven’t really explored it. It seems like you
+could likely add some back-end functionality to your static site for free /
+cheap through Lamda and Dynamo DB so if that is something you may be interested
+in, you can find more information on Amazon AWS free tier services
+<a href="https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&amp;all-free-tier.sort-order=asc">here</a>.</p>
+
+<h3 id="language--frameworks">Language / Frameworks</h3>
+
+<p>I noticed that it seems that the most common type of web site e.g Wordpress,
+Drupal, etc. and PHP as a language, have the most options for easy
+deployment with minimal configuration for cheap. It seems like Java, Ruby, etc. cost more unless you are willing to install and configure things
+yourself. For example, you can easily deploy a Java war file on Amazon
+Elasticbeanstalk almost as easily as Heroku. However, when you add in an RDS database instance you are going to be
+looking at at least $25 a month to run the app. When compared to a Drupal
+one-click install, or a PHP Laravel app running on a LAMP stack, programming
+languages and frameworks beyond PHP don’t seem to have cheap hosting options
+like PHP based apps do.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>So that pretty much rounds out the options I’ve found for cheap hosting.
+Hopefully you’ve found this helpful and learned some ways to save yourself some
+money hosting small sites for yourself or your clients.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Build A Web Site/App Quick and Cheap! - http://brettlischalk.com//posts/build-a-site-quick-and-cheap by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/build-a-site-quick-and-cheap', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/build-a-site-quick-and-cheap', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>

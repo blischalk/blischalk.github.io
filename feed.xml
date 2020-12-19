@@ -7,6 +7,14 @@
     <atom:link href="http://brettlischalk.com//feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Build A Web Site/App Quick and Cheap!</title>
+        <description>Cheapest and fastest ways to get your project online</description>
+        <pubDate>Sat, 19 Dec 2020 00:00:00 -0600</pubDate>
+        <link>http://brettlischalk.com//posts/build-a-site-quick-and-cheap</link>
+        <guid isPermaLink="true">http://brettlischalk.com//posts/build-a-site-quick-and-cheap</guid>
+      </item>
+    
+      <item>
         <title>Amazon ECR Image Scanning Gotchas</title>
         <description>Things you should know about the &quot;vulnerabilities&quot; ECR image scan results report</description>
         <pubDate>Tue, 01 Dec 2020 00:00:00 -0600</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Thu, 24 Aug 2017 00:00:00 -0500</pubDate>
         <link>http://brettlischalk.com//posts/practical-malware-analysis-lab-1-1</link>
         <guid isPermaLink="true">http://brettlischalk.com//posts/practical-malware-analysis-lab-1-1</guid>
-      </item>
-    
-      <item>
-        <title>Kankun Smart Plug Analysis</title>
-        <description>During the Offensive Internet Of Things course, the Kankun Smart Plug is analyzed in various ways including: using Jadx to decompile and analyze the mobile app, acquiring and analyzing the device's firmware, and a nalyzing the network traffic.</description>
-        <pubDate>Mon, 14 Aug 2017 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com//posts/kankun-smart-plug-analysis</link>
-        <guid isPermaLink="true">http://brettlischalk.com//posts/kankun-smart-plug-analysis</guid>
       </item>
     
   </channel>
