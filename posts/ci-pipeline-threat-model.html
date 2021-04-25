@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Lets Build A CI Pipeline Threat Model</title>
+  <meta name="description" content="Lets build a threat model of a CI pipeline for fun">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Lets Build A CI Pipeline Threat Model">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://brettlischalk.com//posts/ci-pipeline-threat-model">
+  <meta property="og:description" content="Lets build a threat model of a CI pipeline for fun">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://brettlischalk.com//posts/ci-pipeline-threat-model">
+  <meta name="twitter:title" content="Lets Build A CI Pipeline Threat Model">
+  <meta name="twitter:description" content="Lets build a threat model of a CI pipeline for fun">
+  <meta name="twitter:image" content="http://brettlischalk.com//assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://brettlischalk.com//feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-6246123062809579",
+      enable_page_level_ads: true
+    });
+  </script>
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Lets Build A CI Pipeline Threat Model</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                April 24, 2021
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  7 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/threat modeling">threat modeling</a>
+                
+                  <a href="/tag/CI Pipeline">CI Pipeline</a>
+                
+                  <a href="/tag/container registry">container registry</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <h1 id="lets-build-a-ci-pipeline-threat-model">Lets Build A CI Pipeline Threat Model</h1>
+
+<p>I really enjoy threat modeling and thinking about all the ways things can go
+wrong in a system. For those unfamiliar with it, the general idea is to first
+determine:</p>
+
+<h2 id="what-are-we-building-draw-a-picture">What Are We Building? (Draw A Picture)</h2>
+
+<p>When threat modeling the first step is to get clarity around what is being
+built. A common way to achieve this is by drawing a picture. Architecture
+diagrams, dataflow diagrams, attack tree diagrams, etc. can all be used and if
+they already exist, are good starting points and save the work of having to draw
+new ones from scratch. With that said, what are we building?</p>
+
+<p>Today we will be building out a CI pipeline that allows an engineer to push
+their code to a git version control system, which will then build, test, and
+deploy a docker image to a container registry. To illustrate this process, I have put
+together the following diagram:</p>
+
+<p><img src="/assets/ci-threat-model.png" alt="Container build, test, publish piepline" /></p>
+
+<h2 id="what-could-possibly-go-wrong--ಠ‿ಠ-">What Could <em>Possibly</em> Go Wrong? ┌( ಠ‿ಠ )┘</h2>
+
+<p>Now that we know what we’re building, we need to think about what could go
+wrong? What might an attacker be able to do that could cause things to go
+sideways? To help us think about potential issues there is the acronym STRIDE. Developed by
+Microsoft, STRIDE helps us think about ways that security issues may arise in a
+system by thinking about different types of security issues. The acronym stands
+for:</p>
+
+<ul>
+  <li>Spoofing</li>
+  <li>Tampering</li>
+  <li>Repudiation</li>
+  <li>Information Disclosure</li>
+  <li>Denial of Service</li>
+  <li>Elevation of Privilege</li>
+</ul>
+
+<p>When thinking about potential threats to a system the particular STRIDE categorization is
+really un-important. Whether something is tampering or spoofing
+really doesn’t matter. For example, one could make the case that altering an ip
+address in a request could be tampering or spoofing. The point of STRIDE is really to
+provide a catalyst to get people thinking.</p>
+
+<p>There are some other catalysts though that I find useful beyond STRIDE:</p>
+
+<ul>
+  <li>Thinking about authentication and authorization</li>
+  <li>Thinking about different kinds of threat actors e.g nation-state,
+angry former employee, hacktivist, etc.</li>
+  <li>Thinking about types of vulnerabilities: SSRF, XSS, Insecure Deserialization,
+Insecure Configuration, etc.</li>
+  <li>Assuming things such as an api key has already been compromised or a firewall
+has been misconfigured</li>
+  <li>Thinking about other high-profile breaches and how those happened</li>
+  <li>Thinking about red-teaming / pentesting experiences, hackthebox and other
+pentest training</li>
+</ul>
+
+<p>So now that we know what we’re building and have some things to prompt our
+creativity, what could possibly go wrong in our CI pipeline deployment?</p>
+
+<h3 id="threats-and-mitigations">Threats and Mitigations</h3>
+
+<p>After spending some time looking over the diagram and thinking about potential
+threats, here are some that I came up with. For each one I also attempted to
+think about some potential mitigations that people may choose to implement to
+address the potential risk.</p>
+
+<h4 id="threat">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>A developers laptop is lost or stolen. The hard drive is not encrypted so the attacker is able to use a tool such as <a href="https://kon-boot.com">Konboot</a> to bypass password authentication and have commit access the all repositories to and ssh access to all systems the developer has access to.</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations">Mitigations</h4>
+
+<ul>
+  <li>Ensure all company laptops are encrypted</li>
+  <li>Ensure developers repository access follows the principle of least privilege
+and only has access to what they need to</li>
+  <li>Ensure devices are using enterprise management software like Jamf, etc.</li>
+  <li>Ensure all devices are attached to the domain</li>
+  <li>Ensure all devices are running end point protection like <a href="https://www.crowdstrike.com/">Crowdstrike</a></li>
+</ul>
+
+<h4 id="threat-1">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>A developer commits AWS secrets to version control either accidentally or on
+purpose. An angry employee with read access to the repository finds the
+secrets and proceeds to use them to steal end-user data.</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations-1">Mitigations</h4>
+
+<ul>
+  <li>Use something like <a href="https://github.com/awslabs/git-secrets">git-secrets</a> in
+repositories to help detect, flag, and block merge requests which may contain
+secrets</li>
+  <li>Ensure the company is using secure secret management techniques such as tools
+like <a href="https://www.vaultproject.io/">Hashicorp Vault</a></li>
+  <li>Ensure secrets are stored encrypted at rest</li>
+  <li>Adhere to the principal of “Need to Know” and ensure that produciton secrets
+are not shared with individuals who don’t have a need to know</li>
+  <li>Adhere to the principal of “Least Privilege” and ensure secrets only have the
+the permissions to fulfill their use case</li>
+  <li>Ensure logging is enabled so that secret usage can be tracked to the system
+and/or user who acquired and used them</li>
+  <li>Enable and use threat detection such as <a href="https://aws.amazon.com/guardduty/">GuardDuty</a> to detect anomolies in patterns of service operation</li>
+  <li>Ensure version control system is only available on the corporate VPN</li>
+</ul>
+
+<h4 id="threat-2">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>A developer creates a benign looking and named, but yet malicious package and hosts it on a public GitHub repo.
+While working on a feature, the developer adds their malicious package into
+the project, backdooring the codebase.</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations-2">Mitigations</h4>
+
+<ul>
+  <li>Ensure all merge requests require review and approval from other engineers.</li>
+  <li>Create administrative policy that mandates packages must only come from company approved
+sources</li>
+  <li>Build and integrate tooling into CI pipelines as a technical control that reviews package files and
+identifies non-company sanctioned repositories; enforcing company policy</li>
+  <li>Enable and use threat detection such as <a href="https://aws.amazon.com/guardduty/">GuardDuty</a> to detect anomolies in patterns of service operation</li>
+</ul>
+
+<h4 id="threat-3">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>A nation-state attacker proceeds to get one of their operatives employed with
+the company. After performing reconnaissance on the corporate network, they
+determine that the version control system has been operating with unpatched
+vulnerabilities. The attacker proceeds to compromise the version control
+server and implant malware which backdoors the company code releases</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations-3">Mitigations</h4>
+
+<ul>
+  <li>Ensure corporate patch management policy exists that outlines SLA’s for patching of
+systems</li>
+  <li>Automate vulnerability scanning of systems and software to identify unpatched vulnerabilities</li>
+  <li>Ensure the company performs background checks on all new employees</li>
+  <li>Ensure the principal of least privilege is followed and employees who don’t
+need access to systems are not provided access to systems</li>
+  <li>Ensure the network is segregated so employees only have network access to the
+systems that are applicable to their job function</li>
+  <li>Enable and use threat detection such as <a href="https://aws.amazon.com/guardduty/">GuardDuty</a> to detect anomolies in patterns of service operation</li>
+  <li>Ensure version control system is only available on the corporate VPN</li>
+  <li>Ensure security groups / firewalls are configured to only allow necessary
+network access</li>
+  <li>Ensure company hardening standards exist which outline procedures for
+hardening systems</li>
+  <li>Ensure the version control system is hardened in alignment with corporate
+standards including things such as:
+    <ul>
+      <li>Removing all un-necessary services</li>
+      <li>Disabling root login</li>
+      <li>Disabling password login</li>
+      <li>Using a “golden image”</li>
+      <li>Using minimal containers if running a containerized environment</li>
+      <li>Etc.</li>
+    </ul>
+  </li>
+  <li>Implement a SIEM and forward events, syslog, etc.</li>
+</ul>
+
+<h4 id="threat-4">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>An popular opensource dependency used by application gets compromised by an attacker.
+The attacker implants bitcoin mining software into the dependency so that
+consuming applications will mine bitcoin for the attacker</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations-4">Mitigations</h4>
+
+<ul>
+  <li>Ensure automated dependency analysis is being performed on application dependencies to
+detect dependencies known to have been compromised</li>
+  <li>Ensure lock files are being used so that builds repeatedly use the same
+version of a dependency until it is explicitly upgraded</li>
+  <li>Enable and use threat detection such as <a href="https://aws.amazon.com/guardduty/">GuardDuty</a> to detect anomolies in patterns of service operation</li>
+  <li>Create administrative policy that mandates packages must only come from company approved
+sources</li>
+  <li>Build and integrate tooling into CI pipelines as a technical control that reviews package files and
+identifies non-company sanctioned repositories; enforcing company policy</li>
+  <li>Subscribe the engineering team to security disclosure distro lists so that</li>
+</ul>
+
+<h4 id="threat-5">Threat</h4>
+
+<blockquote>
+  <blockquote>
+    <p>Developers are given access to the container registry so that they may
+publish POC / testing images or pull production images for debugging
+purposes. Container registry permissions are not well segmented and allow a
+developer to push images to the same registry that production images are
+pulled from. A developer proceeds to publish a backdoored image directly to
+the repository and tags as latest, knowing that it will get picked up as
+part of the next deploy.</p>
+  </blockquote>
+</blockquote>
+
+<h4 id="mitigations-5">Mitigations</h4>
+
+<ul>
+  <li>Ensure logging is configured for the container registry so that all image
+pushes and pulls are captured</li>
+  <li>Do not use the same container registry for developer testing / POC that is
+used for production image storage</li>
+  <li>Restrict publish access to the production container registry to only the CI/CD
+system</li>
+  <li>Enable and use threat detection such as <a href="https://aws.amazon.com/guardduty/">GuardDuty</a> to detect anomolies in patterns of service operation</li>
+  <li>Implement image signing that will only allow the deployment of images that
+have been properly signed</li>
+  <li>Review Google’s <a href="https://cloud.google.com/security/binary-authorization-for-borg">Binary Autnorization for
+Borg</a> and
+  consider adopting some of their controls</li>
+</ul>
+
+<h4 id="what-else">What Else?</h4>
+
+<p>At this point I’m going to stop as this post is already getting kind of long but
+I may come back and update with any more threats / mitigations that I feel may
+be important and may be useful to others thinking about the threat model of a CI
+pipeline. Feel free to leave comments on any you might think of to share with
+others.</p>
+
+<h2 id="what-should-we-do-about-it">What Should We Do About It?</h2>
+
+<p>At this point a team would review the threats and select any mitigations that
+they felt should be implemented to address the identified threats. Since we
+aren’t building this for real, we’ll obviously skip this step.</p>
+
+<h2 id="did-we-do-a-good-job">Did We Do A Good Job?</h2>
+
+<p>Well… I suppose I’ll leave that up to the readers to decide. There are
+certainly more threats that I haven’t identified here. This was only conducted
+at 1 level of zoom. You could for example zoom in specifically on the build,
+test, deploy multi-process circle of the diagram and see what threats you might
+find there. Or perhaps, there is another diagram that would depict how an image
+gets pulled from the registry and actually deployed to ECS / EKS / Fargate, etc.</p>
+
+<p>I hope you have enjoyed seeing how I approach threat modeling and perhaps you
+might feel encouraged to start doing something similar in your organization. Or
+perhaps maybe some threats were identified here that maybe you hadn’t considered
+before and you might be inspired to review some of the security controls in your
+organization.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Lets Build A CI Pipeline Threat Model - http://brettlischalk.com//posts/ci-pipeline-threat-model by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com//posts/ci-pipeline-threat-model', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com//posts/ci-pipeline-threat-model', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>
