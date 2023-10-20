@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Brett Lischalk | Why GitLab Container Scan Results Might Not Match Trivy</title>
+  <meta name="description" content="Sometimes you may see different vulnerabilities when Trivy is run locally vs when GitLab container scan runs. Here are some reasons why.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:title" content="Why GitLab Container Scan Results Might Not Match Trivy">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy">
+  <meta property="og:description" content="Sometimes you may see different vulnerabilities when Trivy is run locally vs when GitLab container scan runs. Here are some reasons why.">
+  <meta property="og:site_name" content="Brett Lischalk">
+  <meta property="og:image" content="http://brettlischalk.com/assets/og-image.jpg">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:url" content="http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy">
+  <meta name="twitter:title" content="Why GitLab Container Scan Results Might Not Match Trivy">
+  <meta name="twitter:description" content="Sometimes you may see different vulnerabilities when Trivy is run locally vs when GitLab container scan runs. Here are some reasons why.">
+  <meta name="twitter:image" content="http://brettlischalk.com/assets/og-image.jpg">
+
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link href="http://brettlischalk.com/feed.xml" type="application/rss+xml" rel="alternate" title="Brett Lischalk Last 10 blog posts" />
+
+  
+    <link type="text/css" rel="stylesheet" href="/assets/dark.css">
+  
+</head>
+
+<body>
+  <main role="main">
+    <div class="grid grid-centered">
+      <div class="grid-cell">
+        <nav class="header-nav reveal">
+  <a href="/" class="header-logo" title="Brett Lischalk">Brett Lischalk</a>
+  <ul class="header-links">
+    
+      <li>
+        <a href="/about" title="About me">
+          <span class="icon icon-android-person"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="https://twitter.com/blischalk" target="_blank" title="Twitter">
+          <span class="icon icon-social-twitter"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="https://github.com/blischalk" target="_blank" title="GitHub">
+          <span class="icon icon-social-github"></span>
+        </a>
+      </li>
+    
+    
+    
+    
+      <li>
+        <a href="https://www.linkedin.com/in/brett-lischalk-3104537" target="_blank" title="LinkedIn">
+          <span class="icon icon-social-linkedin"></span>
+        </a>
+      </li>
+    
+    
+    
+      <li>
+        <a href="mailto:brett@brettlischalk.com" target="_blank" title="Email">
+          <span class="icon icon-at"></span>
+        </a>
+      </li>
+    
+    
+      <li>
+        <a href="/feed.xml" target="_blank" title="RSS">
+          <span class="icon icon-social-rss"></span>
+        </a>
+      </li>
+    
+  </ul>
+</nav>
+
+        <article class="article reveal">
+          <header class="article-header">
+            <h1>Why GitLab Container Scan Results Might Not Match Trivy</h1>
+            <div class="article-list-footer">
+              <span class="article-list-date">
+                October 19, 2023
+              </span>
+              <span class="article-list-divider">-</span>
+              <span class="article-list-minutes">
+                
+                
+                  4 minute read
+                
+              </span>
+              <span class="article-list-divider">-</span>
+              <div class="article-list-tags">
+                
+                  <a href="/tag/gitlab">gitlab</a>
+                
+                  <a href="/tag/vulnerability management">vulnerability management</a>
+                
+                  <a href="/tag/trivy">trivy</a>
+                
+                  <a href="/tag/container scanning">container scanning</a>
+                
+              </div>
+            </div>
+          </header>
+
+          <div class="article-content">
+            <p>As a security engineer you often need to interpret scan results. If you work with
+GitLab container scanning enough, you may encounter situations where the vulnerabilities that GitLab reports don’t match what is found when the same container image is
+scanned with Trivy locally. Here are some reasons why that might occur.</p>
+
+<h2 id="cs_ignore_unfixed">CS_IGNORE_UNFIXED</h2>
+
+<p>One reason that this might occur is that the <code class="highlighter-rouge">CS_IGNORE_UNFIXED</code> environment
+variable may be configured somewhere. Possibly at the project, group, or global
+level as a CI/CD variable or possibly in a template file. <a href="https://docs.gitlab.com/ee/user/application_security/container_scanning/">As described in
+GitLab’s documentation</a>, this variable “Ignores vulnerabilities that are not fixed.” This can be a useful variable to have set depending on an organizations vulnerability management processes and the type of images being scanned. (Some Debian / Ubuntu based images can have many “vulnerabilities” that their security teams have assessed to be of minor importance and won’t fix, which ultimately add noise to a scan report.) However, when Trivy is run locally, if the <code class="highlighter-rouge">--ignore-unfixed</code> flag is not specified the unfixed vulnerabilities that GitLab scanning has been hiding will appear.</p>
+
+<h2 id="gitlab-enterprise-database">GitLab Enterprise Database</h2>
+
+<p>Another reason that GitLab container scanning may report different results than
+a local Trivy scan is due to the vulnerability database that is used. Even
+though GitLab container scanning uses Trivy, it uses GitLab’s own database.
+Additionally, depending on if GitLab Enterprise Edition is running the scan vs.
+GitLab Community Edition, different vulnerability databases are used. We can see
+where the databases are installed in the scanner source code <a href="https://gitlab.com/gitlab-org/security-products/analyzers/container-scanning/-/blob/master/script/setup.sh?ref_type=heads#L23-29">here</a>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"Dowloading CE Trivy DB"</span>
+mkdir <span class="nt">-p</span> /tmp/trivy-ce
+oras pull <span class="s2">"</span><span class="nv">$CE_TRIVY_DB_REGISTRY</span><span class="s2">"</span>:<span class="s2">"</span><span class="k">${</span><span class="nv">trivy_db_version_ce</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-a</span> <span class="nt">-o</span> /tmp/trivy-ce
+
+<span class="nb">echo</span> <span class="s2">"Dowloading EE Trivy DB"</span>
+mkdir <span class="nt">-p</span> /tmp/trivy-ee
+oras pull <span class="s2">"</span><span class="nv">$EE_TRIVY_DB_REGISTRY</span><span class="s2">"</span>:<span class="s2">"</span><span class="k">${</span><span class="nv">trivy_db_version_ee</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-a</span> <span class="nt">-o</span> /tmp/trivy-ee
+</code></pre></div></div>
+
+<p>And then <a href="https://gitlab.com/gitlab-org/security-products/analyzers/container-scanning/-/blob/master/lib/gcs/trivy.rb?ref_type=heads#L131-136">depending on which environment the scanner is running in, which vulnerability database is used</a>.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">cache_dir</span>
+  <span class="k">if</span> <span class="no">Gcs</span><span class="o">::</span><span class="no">Environment</span><span class="p">.</span><span class="nf">ee?</span>
+    <span class="no">File</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="no">CACHE_DIR_BASE</span><span class="p">,</span> <span class="s2">"ee"</span><span class="p">)</span>
+  <span class="k">else</span>
+    <span class="no">File</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="no">CACHE_DIR_BASE</span><span class="p">,</span> <span class="s2">"ce"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Trivy uses the <a href="https://github.com/advisories">GitHub Advisory Database</a> so if a vulnerability is in one database and not another, or if the vulnerability signature definition differs between one database and the other, different results may be encountered.</p>
+
+<p>Something else worth noting is that because GitLab uses a different database for
+enterprise edition and community edition, different results can be encountered
+when running the GitLab container scanner locally vs. when it runs in a
+pipeline.</p>
+
+<h2 id="cs_disable_language_vulnerability_scan">CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN</h2>
+
+<p>The GitLab container scanning configuration variable of <code class="highlighter-rouge">CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN</code> disables the programming language dependency analysis of the container scanner and defaults to true in GitLab. This is because GitLab has a separate dependency scanner. However, a container image may have other application code installed in them that the dependency scanning in GitLab wouldn’t find but Trivy would. If you are seeing application dependency type vulnerabilities in a local Trivy scan but not in GitLab, this could be the culprit.</p>
+
+<p><em>Note: Running Trivy with the <code class="highlighter-rouge">-f json</code> flag can be extremely useful when Trivy reports an application level vulnerability in a container image because it can point you to the file path where the code is installed. If this flag doesn’t report useful results in tracing down where Trivy is reporting the vulnerability, try upgrading Trivy as this reporting has been improved in more recent versions of Trivy. Additionally, depending on your Trivy version a vulnerability may be detected in a jar or war but you may be left wondering where within it the vulnerable dependency is. This may occur due to <a href="https://softwareengineering.stackexchange.com/questions/297276/what-is-a-shaded-java-dependency">“shading” or “shadowing”</a> of dependencies, where a dependency is essentially vendored into the jar/war. In this situation you may need to unzip the jar / war and do some grepping to find what Trivy is flagging. Recent versions of Trivy are better at pointing out the shaded dependency.</em></p>
+
+<h2 id="the-trivy-version">The Trivy Version</h2>
+
+<p>Not as likely but always worth checking is the Trivy version. Trivy has added
+support for application level vulnerability scanning, secret scanning, etc. and
+is improving all the time so it could just be that the version of Trivy that is
+running locally may not align with what GitLab is running. Checking the versions
+and ensuring the same scanner is being run locally so there is as much of an
+apples to apples comparison can sometimes be useful.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Hopefully this post will save some people some head scratching when container
+scanning results don’t quite match up with what GitLab and a local Trivy scan
+report. Armed with the knowledge above I think most scanner discrepencies will be covered. There are likely more things I haven’t encountered before so if you know of any more gotchas like these please leave them in the comments.</p>
+
+          </div>
+
+          <div class="article-share">
+            
+            <a href="" title="Share on Twitter" onclick="window.open('https://twitter.com/home?status=Why GitLab Container Scan Results Might Not Match Trivy - http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy by @blischalk', 'newwindow', 'width=500, height=225'); return false;">
+              <span class="icon icon-social-twitter"></span>
+            </a>
+            <a href="" title="Share on Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy', 'newwindow', 'width=500, height=500'); return false;">
+              <span class="icon icon-social-facebook"></span>
+            </a>
+            <a href="" title="Share on Google+" onclick="window.open('https://plus.google.com/share?url=http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy', 'newwindow', 'width=550, height=400'); return false;">
+              <span class="icon icon-social-googleplus"></span>
+            </a>
+          </div>
+
+          <a href="https://www.offensive-security.com/information-security-certifications/oscp-offensive-security-certified-professional/" title="Offensive Security Certified Professional" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-oscp.png" />
+          </a>
+          <a href="https://www.offensive-security.com/information-security-certifications/osce-offensive-security-certified-expert/" title="Offensive Security Certified Expert" target="_blank">
+            <img src="/assets/offsec-student-certified-emblem-rgb-osce.png"" />
+          </a>
+
+          
+            <div id="disqus_thread" class="article-comments"></div>
+            <script>
+              (function() {
+                  var d = document, s = d.createElement('script');
+                  s.src = '//blischalkblog.disqus.com/embed.js';
+                  s.setAttribute('data-timestamp', +new Date());
+                  (d.head || d.body).appendChild(s);
+              })();
+            </script>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+          
+        </article>
+        <footer class="footer reveal">
+  <p>
+    Site content by: <a href="/about" title="About me">Brett Lischalk</a>.
+  </p>
+</footer>
+
+      </div>
+    </div>
+  </main>
+  <script type="text/javascript" src="/assets/vendor.js"></script>
+<script type="text/javascript" src="/assets/application.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.16/webfont.js"></script>
+<script>
+  WebFont.load({
+    google: {
+      families: ['Cormorant Garamond:700', 'Lato:300,400,700']
+    }
+  });
+</script>
+
+
+  <script>
+    window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
+    ga('create','UA-4121143-2','auto');ga('send','pageview')
+  </script>
+  <script src="https://www.google-analytics.com/analytics.js" async defer></script>
+
+
+</body>
+</html>

@@ -7,6 +7,14 @@
     <atom:link href="http://brettlischalk.com/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>Why GitLab Container Scan Results Might Not Match Trivy</title>
+        <description>Sometimes you may see different vulnerabilities when Trivy is run locally vs when GitLab container scan runs. Here are some reasons why.</description>
+        <pubDate>Thu, 19 Oct 2023 00:00:00 -0500</pubDate>
+        <link>http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy</link>
+        <guid isPermaLink="true">http://brettlischalk.com/posts/why-gitlab-container-scan-results-might-not-match-trivy</guid>
+      </item>
+    
+      <item>
         <title>Zero Downtime API Shared Secret Rotation</title>
         <description>A demonstration of how an API could rotate its shared secret with zero down time</description>
         <pubDate>Sat, 29 Apr 2023 00:00:00 -0500</pubDate>
@@ -76,14 +84,6 @@
         <pubDate>Fri, 15 Sep 2017 00:00:00 -0500</pubDate>
         <link>http://brettlischalk.com/posts/kankun-smartplug-network-decryption</link>
         <guid isPermaLink="true">http://brettlischalk.com/posts/kankun-smartplug-network-decryption</guid>
-      </item>
-    
-      <item>
-        <title>Practical Malware Analysis: Lab 1-4</title>
-        <description>Walkthrough of the processes followed to analyze the Practical Malware Analysis Lab 1-4 malware.</description>
-        <pubDate>Mon, 28 Aug 2017 00:00:00 -0500</pubDate>
-        <link>http://brettlischalk.com/posts/practical-malware-analysis-lab-1-4</link>
-        <guid isPermaLink="true">http://brettlischalk.com/posts/practical-malware-analysis-lab-1-4</guid>
       </item>
     
   </channel>
